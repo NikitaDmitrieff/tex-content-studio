@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
     visual_prompts: string[]
     character_physical: string
     scene_ids: string[]
+    visual_dna?: string
   }
 
   try {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { visual_prompts, character_physical, scene_ids } = body
+  const { visual_prompts, character_physical, scene_ids, visual_dna } = body
 
   if (!visual_prompts || !Array.isArray(visual_prompts) || !scene_ids) {
     return NextResponse.json(
@@ -77,7 +78,8 @@ export async function POST(request: NextRequest) {
   try {
     const results = await Promise.allSettled(
       visual_prompts.map(async (prompt, index) => {
-        const enhancedPrompt = `${prompt}. Character details: ${character_physical}. Style: shot on iPhone 8, slightly grainy, natural lighting, candid photography, realistic, NOT AI-looking, NOT stylized, documentary style photo.`
+        const promptWithDna = visual_dna ? `${visual_dna}, ${prompt}` : prompt
+        const enhancedPrompt = `${promptWithDna}. Character details: ${character_physical}. Style: shot on iPhone 8, slightly grainy, natural lighting, candid photography, realistic, NOT AI-looking, NOT stylized, documentary style photo.`
 
         const genRes = await fetch(`${LEONARDO_API_BASE}/generations`, {
           method: 'POST',

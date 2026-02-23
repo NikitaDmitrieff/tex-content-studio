@@ -1,7 +1,7 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { Story, STATUS_CONFIG } from '@/lib/types'
 import Link from 'next/link'
-import { Plus, Film, Sparkles, AlertCircle, Calendar } from 'lucide-react'
+import { Plus, Film, Sparkles, AlertCircle, Calendar, Users } from 'lucide-react'
 import { NewStoryButton } from '@/components/NewStoryButton'
 
 const DEMO_STORIES: (Story & { scene_count: number; first_image: string | null })[] = [
@@ -46,9 +46,15 @@ const DEMO_STORIES: (Story & { scene_count: number; first_image: string | null }
   },
 ]
 
-async function getStories(): Promise<(Story & { scene_count: number; first_image: string | null })[]> {
+type StoryWithMeta = Story & {
+  scene_count: number
+  first_image: string | null
+  character_name_for_link: string | null
+}
+
+async function getStories(): Promise<StoryWithMeta[]> {
   if (!isSupabaseConfigured || !supabase) {
-    return DEMO_STORIES
+    return DEMO_STORIES.map((s) => ({ ...s, character_name_for_link: null }))
   }
 
   const { data: stories, error } = await supabase
@@ -57,7 +63,7 @@ async function getStories(): Promise<(Story & { scene_count: number; first_image
     .order('created_at', { ascending: false })
 
   if (error || !stories) {
-    return DEMO_STORIES
+    return DEMO_STORIES.map((s) => ({ ...s, character_name_for_link: null }))
   }
 
   const storiesWithScenes = await Promise.all(
@@ -75,10 +81,21 @@ async function getStories(): Promise<(Story & { scene_count: number; first_image
         .limit(1)
         .single()
 
+      let characterNameForLink: string | null = null
+      if (story.character_id) {
+        const { data: charData } = await supabase!
+          .from('characters')
+          .select('name')
+          .eq('id', story.character_id)
+          .single()
+        characterNameForLink = charData?.name ?? null
+      }
+
       return {
         ...story,
         scene_count: count ?? 0,
         first_image: firstScene?.image_url ?? null,
+        character_name_for_link: characterNameForLink,
       }
     })
   )
@@ -89,7 +106,7 @@ async function getStories(): Promise<(Story & { scene_count: number; first_image
 export const dynamic = 'force-dynamic'
 
 export default async function Dashboard() {
-  const stories = await getStories()
+  const stories = await getStories() as StoryWithMeta[]
   const isDemo = !isSupabaseConfigured
 
   return (
@@ -180,13 +197,16 @@ export default async function Dashboard() {
           {stories.map((story) => {
             const statusCfg = STATUS_CONFIG[story.status]
             return (
-              <Link
-                key={story.id}
-                href={`/story/${story.id}`}
-                className="glass-card glass-card-interactive p-5 block group"
-              >
+              <div key={story.id} className="glass-card glass-card-interactive p-5 group relative">
+                {/* Main link overlay — covers card but sits behind character chip */}
+                <Link
+                  href={`/story/${story.id}`}
+                  className="absolute inset-0 rounded-2xl z-0"
+                  aria-label={`Open story: ${story.character_name}`}
+                />
+
                 {/* Thumbnail */}
-                <div className="aspect-video rounded-lg bg-white/[0.02] border border-white/[0.05] mb-4 overflow-hidden flex items-center justify-center">
+                <div className="aspect-video rounded-lg bg-white/[0.02] border border-white/[0.05] mb-4 overflow-hidden flex items-center justify-center relative z-[1] pointer-events-none">
                   {story.first_image ? (
                     <img
                       src={story.first_image}
@@ -199,7 +219,7 @@ export default async function Dashboard() {
                 </div>
 
                 {/* Info */}
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between mb-2 relative z-[1] pointer-events-none">
                   <h3 className="font-semibold text-white group-hover:text-[var(--accent)] transition-colors">
                     {story.character_name}
                   </h3>
@@ -207,14 +227,23 @@ export default async function Dashboard() {
                     {statusCfg.label}
                   </span>
                 </div>
-                <p className="text-sm text-zinc-400 mb-3">
+                <p className="text-sm text-zinc-400 mb-3 relative z-[1] pointer-events-none">
                   {story.character_age}yo {story.character_job}
                 </p>
-                <div className="flex items-center gap-4 text-xs text-zinc-500">
-                  <span>{story.scene_count} scene{story.scene_count !== 1 ? 's' : ''}</span>
-                  <span>{story.emotional_tone.replace(/_/g, ' ')}</span>
+                <div className="flex items-center gap-4 text-xs text-zinc-500 flex-wrap relative z-[1]">
+                  <span className="pointer-events-none">{story.scene_count} scene{story.scene_count !== 1 ? 's' : ''}</span>
+                  <span className="pointer-events-none">{story.emotional_tone.replace(/_/g, ' ')}</span>
+                  {story.character_id && story.character_name_for_link && (
+                    <Link
+                      href={`/characters/${story.character_id}`}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent-hover)] hover:bg-[var(--accent)]/20 transition-colors z-[2] relative"
+                    >
+                      <Users className="w-2.5 h-2.5" />
+                      {story.character_name_for_link}
+                    </Link>
+                  )}
                 </div>
-              </Link>
+              </div>
             )
           })}
         </div>

@@ -17,12 +17,14 @@ type GenerationStatus = 'idle' | 'generating' | 'done' | 'error'
 export function ImageGenerationStep({
   story,
   scenes,
+  visualDna,
   onScenesUpdate,
   onBack,
   onContinue,
 }: {
   story: Story
   scenes: Scene[]
+  visualDna?: string | null
   onScenesUpdate: (scenes: Scene[]) => void
   onBack: () => void
   onContinue: () => void
@@ -53,6 +55,7 @@ export function ImageGenerationStep({
           visual_prompts: scenesToGenerate.map((s) => s.visual_prompt),
           character_physical: story.character_physical,
           scene_ids: scenesToGenerate.map((s) => s.id),
+          ...(visualDna ? { visual_dna: visualDna } : {}),
         }),
       })
       const data = await res.json()

@@ -36,6 +36,22 @@ export function StoryArcStep({
   async function handleGenerate() {
     setGenerating(true)
     try {
+      let previousEpisodesSummary: string | undefined
+
+      if (story.character_id) {
+        try {
+          const prevRes = await fetch(
+            `/api/character-episodes?character_id=${story.character_id}&exclude_story_id=${story.id}`
+          )
+          if (prevRes.ok) {
+            const prevData = await prevRes.json()
+            previousEpisodesSummary = prevData.summary
+          }
+        } catch {
+          // previous episodes summary is optional — continue without it
+        }
+      }
+
       const res = await fetch('/api/generate-story', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,6 +65,8 @@ export function StoryArcStep({
           },
           emotional_tone: story.emotional_tone,
           story_id: story.id,
+          character_id: story.character_id ?? undefined,
+          previous_episodes_summary: previousEpisodesSummary,
         }),
       })
       const data = await res.json()

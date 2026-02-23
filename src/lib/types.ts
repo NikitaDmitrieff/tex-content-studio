@@ -16,6 +16,18 @@ export type Story = {
   character_physical: string
   emotional_tone: EmotionalTone
   status: StoryStatus
+  character_id?: string | null
+  created_at: string
+}
+
+export type Character = {
+  id: string
+  name: string
+  age: number | null
+  job: string | null
+  backstory: string | null
+  physical_description: string | null
+  visual_dna: string | null
   created_at: string
 }
 

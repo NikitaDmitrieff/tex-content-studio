@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Story, Scene } from '@/lib/types'
+import { Story, Scene, AudioBrief } from '@/lib/types'
 import {
-  ArrowLeft,
   Download,
   ChevronLeft,
   ChevronRight,
@@ -15,23 +14,7 @@ import {
   MessageSquare,
   Sparkles,
   Globe,
-  Video,
-  Zap,
-  Music,
-  Eye,
 } from 'lucide-react'
-import Link from 'next/link'
-import { EngagementKit } from './EngagementKit'
-import { VoiceoverScriptPanel } from './VoiceoverScriptPanel'
-import { RealityAnchorCard } from './RealityAnchorCard'
-import { MultiPlatformAmplifier } from './MultiPlatformAmplifier'
-import { HookLab } from './HookLab'
-import { CommentStormEngine } from './CommentStormEngine'
-import { AudioBriefPanel } from './AudioBriefPanel'
-import { CommentSeedLab } from './CommentSeedLab'
-import { RealityAnchors, ScreeningResult, AudioBrief } from '@/lib/types'
-
-type ActiveTab = 'export' | 'hooklab' | 'engagement' | 'seeds' | 'voiceover' | 'reality' | 'amplify' | 'audio'
 
 type PostCaption = {
   hook: string
@@ -59,24 +42,19 @@ export function ExportStep({
   story,
   scenes,
   onScenesUpdate,
-  onBack,
-  screeningResult,
+  audioBrief,
 }: {
   story: Story
   scenes: Scene[]
   onScenesUpdate: (scenes: Scene[]) => void
-  onBack: () => void
-  screeningResult?: ScreeningResult | null
+  audioBrief?: AudioBrief | null
 }) {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('export')
   const [language, setLanguage] = useState<'en' | 'fr'>('en')
   const [currentSlide, setCurrentSlide] = useState(0)
   const [downloading, setDownloading] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
   const [caption, setCaption] = useState<PostCaption | null>(null)
   const [generatingCaption, setGeneratingCaption] = useState(false)
-  const [showCommentStorm, setShowCommentStorm] = useState(false)
-  const [audioBrief, setAudioBrief] = useState<AudioBrief | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const scenesWithImages = scenes.filter((s) => s.image_url)
@@ -195,10 +173,6 @@ export function ExportStep({
 
   return (
     <div className="space-y-6">
-      {/* Comment Storm Engine overlay */}
-      {showCommentStorm && (
-        <CommentStormEngine story={story} onClose={() => setShowCommentStorm(false)} />
-      )}
       {/* Section header */}
       <div className="flex items-center justify-between">
         <div>
@@ -217,214 +191,25 @@ export function ExportStep({
             <Globe className="w-3.5 h-3.5" />
             {language === 'en' ? 'EN' : 'FR'}
           </button>
-          {activeTab === 'export' && (
-            <button
-              onClick={handleDownloadAll}
-              disabled={downloading || scenesWithImages.length === 0}
-              className="btn-accent flex items-center gap-2"
-            >
-              {downloading ? (
-                <>
-                  <div className="spinner" />
-                  <span>Packaging...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  <span>Download All</span>
-                </>
-              )}
-            </button>
-          )}
+          <button
+            onClick={handleDownloadAll}
+            disabled={downloading || scenesWithImages.length === 0}
+            className="btn-accent flex items-center gap-2"
+          >
+            {downloading ? (
+              <>
+                <div className="spinner" />
+                <span>Packaging...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                <span>Download All</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
-
-      {/* Tab bar */}
-      <div className="flex border-b border-white/[0.08]">
-        <button
-          onClick={() => setActiveTab('export')}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-            activeTab === 'export'
-              ? 'border-[var(--accent)] text-white'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          Export &amp; Caption
-        </button>
-        <button
-          onClick={() => setActiveTab('hooklab')}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
-            activeTab === 'hooklab'
-              ? 'border-[var(--accent)] text-white'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          <span className="text-xs">🎣</span>
-          Hook Lab
-        </button>
-        <button
-          onClick={() => setActiveTab('engagement')}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
-            activeTab === 'engagement'
-              ? 'border-[var(--accent)] text-white'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          Engagement Kit
-        </button>
-        <button
-          onClick={() => setActiveTab('seeds')}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
-            activeTab === 'seeds'
-              ? 'border-emerald-500 text-white'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          <span className="text-xs">🌱</span>
-          Graines
-        </button>
-        {story.status === 'complete' && (
-          <button
-            onClick={() => setActiveTab('voiceover')}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
-              activeTab === 'voiceover'
-                ? 'border-[var(--accent)] text-white'
-                : 'border-transparent text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <Video className="w-3.5 h-3.5" />
-            Voiceover Script
-          </button>
-        )}
-        <button
-          onClick={() => setActiveTab('amplify')}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
-            activeTab === 'amplify'
-              ? 'border-[var(--accent)] text-white'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          <Zap className="w-3.5 h-3.5" />
-          Amplify
-          <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent-hover)] border border-[var(--accent)]/20 leading-none">
-            5 platforms
-          </span>
-        </button>
-        <button
-          onClick={() => setActiveTab('audio')}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
-            activeTab === 'audio'
-              ? 'border-[var(--accent)] text-white'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          <Music className="w-3.5 h-3.5" />
-          Audio Brief
-        </button>
-        {story.is_reality_grounded && story.reality_anchors && (
-          <button
-            onClick={() => setActiveTab('reality')}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
-              activeTab === 'reality'
-                ? 'border-emerald-500 text-white'
-                : 'border-transparent text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            🟢 Reality Anchors
-          </button>
-        )}
-      </div>
-
-      {/* Hook Lab tab */}
-      {activeTab === 'hooklab' && (
-        <>
-          <HookLab
-            story={story}
-            scenes={scenes}
-            screeningResult={screeningResult ?? null}
-            onUseHook={(hookText) => {
-              const scenesWithImages = scenes.filter((s) => s.image_url)
-              if (scenesWithImages.length > 0) {
-                const updated = scenes.map((s) =>
-                  s.id === scenesWithImages[0].id ? { ...s, caption: hookText } : s
-                )
-                onScenesUpdate(updated)
-              }
-            }}
-          />
-          <div className="flex justify-between mt-6">
-            <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Images
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Engagement Kit tab */}
-      {activeTab === 'engagement' && (
-        <EngagementKit
-          story={story}
-          scenes={scenes}
-          existingCaption={caption}
-          language={language}
-        />
-      )}
-
-      {/* Comment Seed Lab tab */}
-      {activeTab === 'seeds' && (
-        <CommentSeedLab storyId={story.id} emotionalTone={story.emotional_tone} />
-      )}
-
-      {/* Voiceover Script tab */}
-      {activeTab === 'voiceover' && (
-        <VoiceoverScriptPanel story={story} scenes={scenes} />
-      )}
-
-      {/* Amplify tab */}
-      {activeTab === 'amplify' && (
-        <>
-          <MultiPlatformAmplifier story={story} scenes={scenes} language={language} />
-          <div className="flex justify-between">
-            <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Images
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Audio Brief tab */}
-      {activeTab === 'audio' && (
-        <>
-          <AudioBriefPanel story={story} scenes={scenes} onBriefGenerated={setAudioBrief} />
-          <div className="flex justify-between mt-6">
-            <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Images
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Reality Anchors tab */}
-      {activeTab === 'reality' && story.reality_anchors && (
-        <>
-          <div className="glass-card p-6">
-            <RealityAnchorCard realityAnchors={story.reality_anchors as RealityAnchors} />
-          </div>
-          <div className="flex justify-between">
-            <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Images
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Export & Caption tab */}
-      {activeTab === 'export' && (<>
 
       {/* Post Caption — PRIMARY section */}
       <div className="glass-card p-6 border-[var(--accent)]/20">
@@ -752,70 +537,6 @@ export function ExportStep({
           </div>
         </div>
       </div>
-
-      {/* Navigation */}
-      <div className="flex justify-between items-center">
-        <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Images
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="text-sm text-zinc-500">
-            {scenesWithImages.length} slide{scenesWithImages.length !== 1 ? 's' : ''} ready for
-            export
-          </div>
-          <Link
-            href={`/stories/${story.id}/preview`}
-            className="btn-secondary flex items-center gap-2"
-          >
-            <Eye className="w-4 h-4" />
-            Preview Again
-          </Link>
-          <button
-            onClick={() => setShowCommentStorm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-            style={{
-              background: 'linear-gradient(135deg, #7c3aed, #8B5CF6)',
-              color: 'white',
-              boxShadow: '0 0 20px rgba(139,92,246,0.3)',
-            }}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Créer la Suite
-          </button>
-        </div>
-      </div>
-      </>)}
-
-      {/* Navigation shown on engagement tab too */}
-      {activeTab === 'engagement' && (
-        <div className="flex justify-between">
-          <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Images
-          </button>
-        </div>
-      )}
-
-      {/* Navigation shown on seeds tab */}
-      {activeTab === 'seeds' && (
-        <div className="flex justify-between">
-          <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Images
-          </button>
-        </div>
-      )}
-
-      {/* Navigation shown on voiceover tab */}
-      {activeTab === 'voiceover' && (
-        <div className="flex justify-between">
-          <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Images
-          </button>
-        </div>
-      )}
     </div>
   )
 }

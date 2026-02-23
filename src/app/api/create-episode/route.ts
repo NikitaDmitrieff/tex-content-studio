@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
-  let body: { character_id: string }
+  let body: { character_id: string; emotional_tone?: string; preset_hook?: string }
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { character_id } = body
+  const { character_id, emotional_tone, preset_hook } = body
 
   if (!character_id) {
     return NextResponse.json({ error: 'Missing character_id' }, { status: 400 })
@@ -39,8 +39,9 @@ export async function POST(request: NextRequest) {
       character_job: character.job,
       character_backstory: character.backstory,
       character_physical: character.physical_description,
-      emotional_tone: 'comeback',
+      emotional_tone: emotional_tone ?? 'comeback',
       status: 'draft',
+      ...(preset_hook ? { selected_hook: preset_hook } : {}),
     })
     .select('id')
     .single()

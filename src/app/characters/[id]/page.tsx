@@ -1,7 +1,7 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { Character, Story, Scene, STATUS_CONFIG } from '@/lib/types'
 import Link from 'next/link'
-import { ArrowLeft, Film, Users, HelpCircle } from 'lucide-react'
+import { ArrowLeft, Film, Users, HelpCircle, BookOpen } from 'lucide-react'
 import { NewEpisodeButton } from '@/components/NewEpisodeButton'
 import { VisualDnaEditor } from '@/components/VisualDnaEditor'
 
@@ -267,8 +267,15 @@ export default async function CharacterDetailPage({
         )}
       </div>
 
-      {/* ── New Episode button ── */}
-      <div className="flex justify-center py-4">
+      {/* ── Action buttons ── */}
+      <div className="flex justify-center gap-3 py-4 flex-wrap">
+        <Link
+          href={`/characters/${character.id}/series-bible`}
+          className="btn-secondary inline-flex items-center gap-2"
+        >
+          <BookOpen className="w-4 h-4" />
+          Plan a Series
+        </Link>
         <NewEpisodeButton characterId={character.id} />
       </div>
     </div>

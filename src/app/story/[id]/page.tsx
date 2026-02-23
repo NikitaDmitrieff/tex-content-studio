@@ -8,7 +8,7 @@ const DEMO_STORY: Story = {
   character_age: 54,
   character_job: 'Long-haul trucker',
   character_backstory:
-    'Frank spent 30 years behind the wheel eating gas station food and drinking energy drinks. His knees ache from the cab, his back is shot, and he hasn\'t seen his toes in years. His wife left him 3 years ago, partly because he stopped caring about himself. His daughter\'s wedding is in 6 months, and he overheard her telling a friend she was embarrassed he wouldn\'t fit in the family photos.',
+    'I spent 30 years behind the wheel eating gas station food and drinking energy drinks. My knees ache from the cab, my back is shot, and I haven\'t seen my toes in years. My wife left me 3 years ago, partly because I stopped caring about myself. My daughter\'s wedding is in 6 months, and I overheard her telling a friend she was embarrassed I wouldn\'t fit in the family photos.',
   character_physical:
     'Heavyset at 280lbs on a 5\'10" frame, ruddy complexion from years of sun through the truck windshield, perpetual five o\'clock shadow, calloused hands, wears stretched-out trucker caps and flannel shirts.',
   emotional_tone: 'comeback',

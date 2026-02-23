@@ -96,8 +96,9 @@ export function ExportStep({
 
   function generateVoiceoverScript(): string {
     const lines: string[] = []
-    lines.push(`[VOICEOVER SCRIPT: ${story.character_name}'s Story]\n`)
+    lines.push(`[VOICEOVER SCRIPT: ${story.character_name}'s Story — First Person]\n`)
     lines.push(`Tone: ${story.emotional_tone.replace(/_/g, ' ')}\n`)
+    lines.push(`Note: Read as the character speaking directly to camera.\n`)
 
     scenesWithImages.forEach((scene, i) => {
       lines.push(`--- Slide ${i + 1} ---`)
@@ -110,7 +111,7 @@ export function ExportStep({
 
     lines.push('---')
     lines.push(
-      `Suggested CTA: "Follow for more real transformation stories. Download Tex Fitness to start your own journey."`
+      `Suggested CTA: "Follow for more real stories. Link in bio."`
     )
 
     return lines.join('\n')

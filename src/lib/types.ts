@@ -24,6 +24,7 @@ export type Story = {
   selected_hook?: string | null
   hook_variants?: HookWithScoring[] | null
   comment_intelligence?: CommentIntelligence | null
+  comment_seeds?: CommentSeedKit | null
 }
 
 export type Character = {
@@ -314,4 +315,21 @@ export type SwipeMomentumResult = {
   completion_rate_estimate: string
   critical_fixes: number[]
   strong_slides: number[]
+}
+
+// ── Viral Comment Seed Lab ────────────────────────────────────────────────────
+
+export type CommentSeed = {
+  archetype: 'gentle_skeptic' | 'personal_echo' | 'soft_provocateur' | 'curiosity_magnet' | 'shock_amplifier'
+  comment_text: string
+  creator_response: string
+  controversy_level: 'douce' | 'sceptique' | 'hot_take' | 'curiosite' | 'choc'
+  predicted_replies: string
+  thread_shape: string
+}
+
+export type CommentSeedKit = {
+  seeds: CommentSeed[]
+  strategy_summary: string
+  optimal_post_order: number[]
 }

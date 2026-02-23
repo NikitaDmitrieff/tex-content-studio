@@ -6,7 +6,9 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseServiceKey)
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabaseServiceKey!)
+  ? createClient(supabaseUrl!, supabaseServiceKey!, {
+      db: { schema: 'tex_content' },
+    })
   : null
 
 export function getSupabaseClient() {

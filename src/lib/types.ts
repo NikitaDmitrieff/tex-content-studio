@@ -354,3 +354,46 @@ export type CommentSeedKit = {
   strategy_summary: string
   optimal_post_order: number[]
 }
+
+// ── Virality Intelligence Matrix ──────────────────────────────────────────────
+
+export type CharacterArchetype =
+  | 'blue_collar_worker'
+  | 'healthcare'
+  | 'service_industry'
+  | 'transport'
+  | 'retired'
+  | 'parent'
+  | 'tradesperson'
+  | 'office_worker'
+  | 'creative'
+  | 'food_service'
+
+export type MatrixCell = {
+  tone: EmotionalTone
+  archetype: CharacterArchetype
+  avgScore: number | null // 0–10, null if unexplored
+  storyCount: number
+  topStoryId: string | null
+  isDeadZone: boolean // avgScore < 4 && storyCount >= 2
+}
+
+export type ProvenFormula = {
+  rank: number
+  tone: EmotionalTone
+  archetype: CharacterArchetype
+  format: string
+  hookType: HookTriggerType
+  compositeScore: number
+  storyCount: number
+  topStoryIds: string[]
+  rationale: string
+}
+
+export type IntelligenceReport = {
+  matrix: MatrixCell[][]
+  topFormulas: ProvenFormula[]
+  trendData: { week: string; avgScore: number; benchmark: number }[]
+  totalStoriesAnalyzed: number
+  lastUpdated: string
+}

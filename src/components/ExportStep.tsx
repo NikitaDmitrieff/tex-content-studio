@@ -22,9 +22,10 @@ import { EngagementKit } from './EngagementKit'
 import { VoiceoverScriptPanel } from './VoiceoverScriptPanel'
 import { RealityAnchorCard } from './RealityAnchorCard'
 import { MultiPlatformAmplifier } from './MultiPlatformAmplifier'
-import { RealityAnchors } from '@/lib/types'
+import { HookLab } from './HookLab'
+import { RealityAnchors, ScreeningResult } from '@/lib/types'
 
-type ActiveTab = 'export' | 'engagement' | 'voiceover' | 'reality' | 'amplify'
+type ActiveTab = 'export' | 'hooklab' | 'engagement' | 'voiceover' | 'reality' | 'amplify'
 
 type PostCaption = {
   hook: string
@@ -53,11 +54,13 @@ export function ExportStep({
   scenes,
   onScenesUpdate,
   onBack,
+  screeningResult,
 }: {
   story: Story
   scenes: Scene[]
   onScenesUpdate: (scenes: Scene[]) => void
   onBack: () => void
+  screeningResult?: ScreeningResult | null
 }) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('export')
   const [language, setLanguage] = useState<'en' | 'fr'>('en')
@@ -233,6 +236,17 @@ export function ExportStep({
           Export &amp; Caption
         </button>
         <button
+          onClick={() => setActiveTab('hooklab')}
+          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
+            activeTab === 'hooklab'
+              ? 'border-[var(--accent)] text-white'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
+          }`}
+        >
+          <span className="text-xs">🎣</span>
+          Hook Lab
+        </button>
+        <button
           onClick={() => setActiveTab('engagement')}
           className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
             activeTab === 'engagement'
@@ -283,6 +297,32 @@ export function ExportStep({
           </button>
         )}
       </div>
+
+      {/* Hook Lab tab */}
+      {activeTab === 'hooklab' && (
+        <>
+          <HookLab
+            story={story}
+            scenes={scenes}
+            screeningResult={screeningResult ?? null}
+            onUseHook={(hookText) => {
+              const scenesWithImages = scenes.filter((s) => s.image_url)
+              if (scenesWithImages.length > 0) {
+                const updated = scenes.map((s) =>
+                  s.id === scenesWithImages[0].id ? { ...s, caption: hookText } : s
+                )
+                onScenesUpdate(updated)
+              }
+            }}
+          />
+          <div className="flex justify-between mt-6">
+            <button onClick={onBack} className="btn-secondary flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Images
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Engagement Kit tab */}
       {activeTab === 'engagement' && (

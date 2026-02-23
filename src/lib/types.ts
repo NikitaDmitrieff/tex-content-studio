@@ -21,6 +21,8 @@ export type Story = {
   created_at: string
   reality_anchors?: RealityAnchors | null
   is_reality_grounded?: boolean
+  selected_hook?: string | null
+  hook_variants?: HookWithScoring[] | null
 }
 
 export type Character = {
@@ -168,6 +170,28 @@ export type ScreeningResult = {
   virality_score: number
   verdict: 'ready' | 'needs_work' | 'reshoot'
   key_improvements: string[]
+}
+
+export type HookTriggerType = 'curiosity_gap' | 'shock_stat' | 'radical_relatability'
+
+export type HookVariant = {
+  variant: string
+  trigger_type: HookTriggerType
+  confidence_score: number
+  hook_length_chars: number
+}
+
+export type HookPersonaScore = {
+  persona_name: string
+  persona_emoji: string
+  scroll_stop_likelihood: number
+  predicted_reaction: string
+}
+
+export type HookWithScoring = {
+  hook: HookVariant
+  persona_scores: HookPersonaScore[]
+  scroll_stop_score: number
 }
 
 export const STATUS_CONFIG: Record<StoryStatus, { label: string; color: string }> = {

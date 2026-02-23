@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Story, Scene } from '@/lib/types'
+import { Story, Scene, ScanResult } from '@/lib/types'
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,6 +13,7 @@ import {
   X,
   Check,
 } from 'lucide-react'
+import { AuthenticityScanner } from './AuthenticityScanner'
 
 export function StoryArcStep({
   story,
@@ -30,6 +31,7 @@ export function StoryArcStep({
   const [generating, setGenerating] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editForm, setEditForm] = useState<Partial<Scene>>({})
+  const [scanResults, setScanResults] = useState<ScanResult[]>([])
 
   async function handleGenerate() {
     setGenerating(true)
@@ -205,11 +207,28 @@ export function StoryArcStep({
           {scenes.map((scene, index) => {
             const isEditing = editingIndex === index
 
+            const scanResult = scanResults.find((r) => r.slide_index === index)
+
             return (
               <div
                 key={scene.id}
-                className={`glass-card p-5 transition-all ${isEditing ? 'border-[var(--accent)]/30' : ''}`}
+                className={`glass-card p-5 transition-all relative ${isEditing ? 'border-[var(--accent)]/30' : ''}`}
               >
+                {/* Human Score badge overlay */}
+                {scanResult && (
+                  <div
+                    className={`absolute top-2 right-2 z-10 inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border ${
+                      scanResult.human_score >= 80
+                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                        : scanResult.human_score >= 60
+                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                        : 'bg-red-500/20 text-red-400 border-red-500/30'
+                    }`}
+                  >
+                    {scanResult.human_score >= 80 ? '👤' : scanResult.human_score >= 60 ? '🤔' : '🤖'}{' '}
+                    {scanResult.human_score}
+                  </div>
+                )}
                 {isEditing ? (
                   /* Edit mode */
                   <div className="space-y-4">
@@ -338,6 +357,14 @@ export function StoryArcStep({
             <PlusCircle className="w-4 h-4" />
             Add Scene
           </button>
+
+          {/* Authenticity Scanner */}
+          <AuthenticityScanner
+            scenes={scenes}
+            onScenesUpdate={onScenesUpdate}
+            scanResults={scanResults}
+            onScanComplete={setScanResults}
+          />
         </div>
       )}
 

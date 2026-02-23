@@ -236,6 +236,28 @@ textarea.input-dark {
   animation: pulseGlow 2s ease-in-out infinite;
 }
 
+/* Scanning bar animation for AuthenticityScanner */
+@keyframes scanSweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.scanning-bar-wrap {
+  position: relative;
+  overflow: hidden;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1px;
+}
+
+.scanning-bar-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scanSweep 1.4s ease-in-out infinite;
+  width: 50%;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

@@ -39,6 +39,14 @@ export const EMOTIONAL_TONES: { value: EmotionalTone; label: string; emoji: stri
   { value: 'against_all_odds', label: 'Against All Odds', emoji: '🏆' },
 ]
 
+export type ScanResult = {
+  slide_index: number
+  human_score: number
+  flagged_phrases: string[]
+  verdict: 'authentic' | 'suspicious' | 'ai_smell'
+  rewrite: string | null
+}
+
 export const STATUS_CONFIG: Record<StoryStatus, { label: string; color: string }> = {
   draft: { label: 'Draft', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30' },
   scenes_ready: { label: 'Scenes Ready', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },

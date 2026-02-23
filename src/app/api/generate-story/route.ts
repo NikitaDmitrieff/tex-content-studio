@@ -17,6 +17,11 @@ export async function POST(request: NextRequest) {
     story_id: string
     character_id?: string
     previous_episodes_summary?: string
+    reality_anchors?: {
+      anchors: { fact: string; type: string; scene_index: number | null }[]
+      turning_point_scene_index?: number | null
+      proof_scene_index?: number | null
+    }
   }
 
   try {
@@ -25,7 +30,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { character, emotional_tone, story_id, character_id, previous_episodes_summary } = body
+  const { character, emotional_tone, story_id, character_id, previous_episodes_summary, reality_anchors } = body
 
   if (!character || !emotional_tone) {
     return NextResponse.json(
@@ -99,6 +104,12 @@ export async function POST(request: NextRequest) {
 
     const toneGuide = toneDescriptions[emotional_tone] || toneDescriptions['comeback']
 
+    const realFacts = reality_anchors?.anchors.filter((a) => a.type === 'real').map((a) => a.fact) ?? []
+    const realityContext =
+      realFacts.length > 0
+        ? `\n\nREALITY ANCHORS — These are REAL facts from the creator's actual journey. They MUST be woven into specific scenes:\n${realFacts.map((f, i) => `${i + 1}. ${f}`).join('\n')}\n\nREQUIRED SCENE CONSTRAINTS:\n- One scene MUST use the turning point moment exactly as described above — use the exact words and specific details\n- One scene MUST reference the specific struggles listed — make them visceral and concrete\n- One scene (toward the end) MUST include the specific wins and proof — use the exact numbers and achievements\n`
+        : ''
+
     const isSequel = Boolean(previous_episodes_summary)
     const sequelContext = isSequel
       ? `\n\nPREVIOUS EPISODES CONTEXT (this is a sequel — reference past events naturally):\n${previous_episodes_summary}\n\nSEQUEL RULES:\n- This is a CONTINUATION, not a reset. Don't start from scratch.\n- Reference specific things from the past episodes naturally in the narration (e.g. "since her breakthrough three months ago", "that day at the park still gets me")\n- The character has already started changing. Show where they are NOW and what new challenge or milestone this chapter is about.\n- Don't repeat the "I found an app" moment — that already happened.\n`
@@ -127,7 +138,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `Write a 7-10 slide TikTok photo carousel. First person. The narrator IS the character below.${sequelContext}
+          content: `Write a 7-10 slide TikTok photo carousel. First person. The narrator IS the character below.${sequelContext}${realityContext}
 
 CHARACTER:
 ${character.name}, ${character.age}, ${character.job}
@@ -197,6 +208,10 @@ Respond ONLY with a JSON array (no markdown, no code fences):
       }
       if (character_id) {
         updatePayload.character_id = character_id
+      }
+      if (reality_anchors) {
+        updatePayload.reality_anchors = reality_anchors
+        updatePayload.is_reality_grounded = true
       }
 
       await supabase

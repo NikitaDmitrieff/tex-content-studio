@@ -19,6 +19,8 @@ export type Story = {
   status: StoryStatus
   character_id?: string | null
   created_at: string
+  reality_anchors?: RealityAnchors | null
+  is_reality_grounded?: boolean
 }
 
 export type Character = {
@@ -74,6 +76,68 @@ export type ScanResult = {
   flagged_phrases: string[]
   verdict: 'authentic' | 'suspicious' | 'ai_smell'
   rewrite: string | null
+}
+
+export type JobCategory =
+  | 'truck_driver'
+  | 'nurse'
+  | 'factory_worker'
+  | 'school_worker'
+  | 'office_worker'
+  | 'other'
+
+export const JOB_CATEGORIES: { value: JobCategory; label: string }[] = [
+  { value: 'truck_driver', label: 'Truck driver' },
+  { value: 'nurse', label: 'Nurse' },
+  { value: 'factory_worker', label: 'Factory worker' },
+  { value: 'school_worker', label: 'School worker' },
+  { value: 'office_worker', label: 'Office worker' },
+  { value: 'other', label: 'Other' },
+]
+
+export const STRUGGLE_CHIPS = [
+  { id: 'late_night_cravings', label: 'Late-night cravings' },
+  { id: 'knee_pain', label: 'Knee pain' },
+  { id: 'no_energy', label: 'No energy' },
+  { id: 'family_pressure', label: 'Family pressure' },
+  { id: 'no_time', label: 'No time' },
+  { id: 'gym_embarrassment', label: 'Embarrassment at gym' },
+  { id: 'doctors_warning', label: "Doctor's warning" },
+] as const
+
+export type RealDataInput = {
+  journey: {
+    start_weight?: string
+    end_weight?: string
+    timeframe?: string
+    freeform?: string
+  }
+  job?: {
+    category?: JobCategory
+    struggle?: string
+  }
+  struggles?: string[]
+  struggle_detail?: string
+  turning_point?: string
+  proof?: string
+  privacy?: {
+    change_age: boolean
+    change_gender: boolean
+    change_city: boolean
+    change_job_type: boolean
+  }
+}
+
+export type RealityAnchorItem = {
+  fact: string
+  type: 'real' | 'inspired' | 'invented'
+  scene_index?: number | null
+}
+
+export type RealityAnchors = {
+  anchors: RealityAnchorItem[]
+  turning_point_scene_index?: number | null
+  proof_scene_index?: number | null
 }
 
 export const STATUS_CONFIG: Record<StoryStatus, { label: string; color: string }> = {

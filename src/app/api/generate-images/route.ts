@@ -91,15 +91,12 @@ export async function POST(request: NextRequest) {
             prompt: enhancedPrompt,
             negative_prompt:
               'cartoon, anime, illustration, painting, drawing, art, cgi, 3d render, perfect skin, professional photography, studio lighting, HDR, oversaturated, fitness model, muscular, athletic',
-            modelId: '6b645e3a-d64f-4341-a6d8-7a3690fbf042',
+            modelId: 'de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3',
             width: 1080,
             height: 1920,
             num_images: 1,
-            guidance_scale: 7,
-            num_inference_steps: 30,
-            presetStyle: 'PHOTOGRAPHY',
-            photoReal: true,
-            photoRealVersion: 'v2',
+            alchemy: true,
+            contrast: 3.5,
           }),
         })
 

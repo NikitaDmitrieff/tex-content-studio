@@ -242,6 +242,24 @@ export type SequelBlueprint = {
   sequel_emotional_tone: EmotionalTone
 }
 
+export type SongSuggestion = {
+  artist: string
+  track: string
+  mood_match_score: number
+  why_it_fits: string
+  tiktok_search_term: string
+}
+
+export type AudioBrief = {
+  bpm_range: string
+  mood_arc: string
+  genre_tags: string[]
+  french_affinity_score: number
+  universal_score: number
+  song_suggestions: SongSuggestion[]
+  scene_energies: number[]
+}
+
 export const STATUS_CONFIG: Record<StoryStatus, { label: string; color: string }> = {
   draft: { label: 'Draft', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30' },
   scenes_ready: { label: 'Scenes Ready', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },

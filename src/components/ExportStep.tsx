@@ -17,6 +17,7 @@ import {
   Globe,
   Video,
   Zap,
+  Music,
 } from 'lucide-react'
 import { EngagementKit } from './EngagementKit'
 import { VoiceoverScriptPanel } from './VoiceoverScriptPanel'
@@ -24,9 +25,10 @@ import { RealityAnchorCard } from './RealityAnchorCard'
 import { MultiPlatformAmplifier } from './MultiPlatformAmplifier'
 import { HookLab } from './HookLab'
 import { CommentStormEngine } from './CommentStormEngine'
-import { RealityAnchors, ScreeningResult } from '@/lib/types'
+import { AudioBriefPanel } from './AudioBriefPanel'
+import { RealityAnchors, ScreeningResult, AudioBrief } from '@/lib/types'
 
-type ActiveTab = 'export' | 'hooklab' | 'engagement' | 'voiceover' | 'reality' | 'amplify'
+type ActiveTab = 'export' | 'hooklab' | 'engagement' | 'voiceover' | 'reality' | 'amplify' | 'audio'
 
 type PostCaption = {
   hook: string
@@ -71,6 +73,7 @@ export function ExportStep({
   const [caption, setCaption] = useState<PostCaption | null>(null)
   const [generatingCaption, setGeneratingCaption] = useState(false)
   const [showCommentStorm, setShowCommentStorm] = useState(false)
+  const [audioBrief, setAudioBrief] = useState<AudioBrief | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const scenesWithImages = scenes.filter((s) => s.image_url)
@@ -98,7 +101,11 @@ export function ExportStep({
       const res = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ story_id: story.id, scenes: scenesWithImages }),
+        body: JSON.stringify({
+          story_id: story.id,
+          scenes: scenesWithImages,
+          audio_brief: audioBrief ?? undefined,
+        }),
       })
 
       if (res.ok) {
@@ -290,6 +297,17 @@ export function ExportStep({
             5 platforms
           </span>
         </button>
+        <button
+          onClick={() => setActiveTab('audio')}
+          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
+            activeTab === 'audio'
+              ? 'border-[var(--accent)] text-white'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
+          }`}
+        >
+          <Music className="w-3.5 h-3.5" />
+          Audio Brief
+        </button>
         {story.is_reality_grounded && story.reality_anchors && (
           <button
             onClick={() => setActiveTab('reality')}
@@ -350,6 +368,19 @@ export function ExportStep({
         <>
           <MultiPlatformAmplifier story={story} scenes={scenes} language={language} />
           <div className="flex justify-between">
+            <button onClick={onBack} className="btn-secondary flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Images
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Audio Brief tab */}
+      {activeTab === 'audio' && (
+        <>
+          <AudioBriefPanel story={story} scenes={scenes} onBriefGenerated={setAudioBrief} />
+          <div className="flex justify-between mt-6">
             <button onClick={onBack} className="btn-secondary flex items-center gap-2">
               <ArrowLeft className="w-4 h-4" />
               Back to Images

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ScanLine,
   ChevronDown,
@@ -56,14 +56,23 @@ export function AuthenticityScanner({
   onScenesUpdate,
   scanResults,
   onScanComplete,
+  isRealityGrounded,
 }: {
   scenes: Scene[]
   onScenesUpdate: (scenes: Scene[]) => void
   scanResults: ScanResult[]
   onScanComplete: (results: ScanResult[]) => void
+  isRealityGrounded?: boolean
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isScanning, setIsScanning] = useState(false)
+
+  // Auto-open when results are pre-populated for reality-grounded stories
+  useEffect(() => {
+    if (isRealityGrounded && scanResults.length > 0 && !isOpen) {
+      setIsOpen(true)
+    }
+  }, [isRealityGrounded, scanResults.length]) // eslint-disable-line react-hooks/exhaustive-deps
   const [revealedCount, setRevealedCount] = useState(0)
   const [expandedSlides, setExpandedSlides] = useState<Set<number>>(new Set())
   const [fixingSlide, setFixingSlide] = useState<number | null>(null)
@@ -209,6 +218,11 @@ export function AuthenticityScanner({
               {avgScore}/100
             </span>
           )}
+          {isRealityGrounded && avgScore !== null && !isOpen && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-500/20 text-emerald-400">
+              🌱 Reality-Grounded
+            </span>
+          )}
         </div>
         {isOpen ? (
           <ChevronUp className="w-4 h-4 text-zinc-500" />
@@ -230,11 +244,16 @@ export function AuthenticityScanner({
               {/* Global summary */}
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-2xl font-bold">{avgScore}/100</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${verdictCls}`}>
                       {verdictLabel}
                     </span>
+                    {isRealityGrounded && (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        🌱 Reality-Grounded Authenticity Score
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-zinc-500 mt-0.5">
                     {flaggedCount} slide{flaggedCount !== 1 ? 's' : ''} flagged

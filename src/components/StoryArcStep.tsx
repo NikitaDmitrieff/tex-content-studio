@@ -67,6 +67,7 @@ export function StoryArcStep({
           story_id: story.id,
           character_id: story.character_id ?? undefined,
           previous_episodes_summary: previousEpisodesSummary,
+          reality_anchors: story.reality_anchors ?? undefined,
         }),
       })
       const data = await res.json()
@@ -86,6 +87,29 @@ export function StoryArcStep({
           })
         )
         onScenesUpdate(newScenes)
+
+        // Auto-run authenticity scan for reality-grounded stories
+        if (story.is_reality_grounded && newScenes.length > 0) {
+          try {
+            const scanRes = await fetch('/api/scan-authenticity', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                scenes: newScenes.map((s) => ({
+                  description: s.description,
+                  emotional_beat: s.emotional_beat,
+                })),
+                language: 'en',
+              }),
+            })
+            const scanData = await scanRes.json()
+            if (scanData.results) {
+              setScanResults(scanData.results)
+            }
+          } catch {
+            // auto-scan is optional — ignore errors
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to generate scenes:', err)
@@ -382,6 +406,7 @@ export function StoryArcStep({
             onScenesUpdate={onScenesUpdate}
             scanResults={scanResults}
             onScanComplete={setScanResults}
+            isRealityGrounded={story.is_reality_grounded}
           />
         </div>
       )}

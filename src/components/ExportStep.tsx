@@ -19,8 +19,10 @@ import {
 } from 'lucide-react'
 import { EngagementKit } from './EngagementKit'
 import { VoiceoverScriptPanel } from './VoiceoverScriptPanel'
+import { RealityAnchorCard } from './RealityAnchorCard'
+import { RealityAnchors } from '@/lib/types'
 
-type ActiveTab = 'export' | 'engagement' | 'voiceover'
+type ActiveTab = 'export' | 'engagement' | 'voiceover' | 'reality'
 
 type PostCaption = {
   hook: string
@@ -252,6 +254,18 @@ export function ExportStep({
             Voiceover Script
           </button>
         )}
+        {story.is_reality_grounded && story.reality_anchors && (
+          <button
+            onClick={() => setActiveTab('reality')}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
+              activeTab === 'reality'
+                ? 'border-emerald-500 text-white'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            🟢 Reality Anchors
+          </button>
+        )}
       </div>
 
       {/* Engagement Kit tab */}
@@ -267,6 +281,21 @@ export function ExportStep({
       {/* Voiceover Script tab */}
       {activeTab === 'voiceover' && (
         <VoiceoverScriptPanel story={story} scenes={scenes} />
+      )}
+
+      {/* Reality Anchors tab */}
+      {activeTab === 'reality' && story.reality_anchors && (
+        <>
+          <div className="glass-card p-6">
+            <RealityAnchorCard realityAnchors={story.reality_anchors as RealityAnchors} />
+          </div>
+          <div className="flex justify-between">
+            <button onClick={onBack} className="btn-secondary flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Images
+            </button>
+          </div>
+        </>
       )}
 
       {/* Export & Caption tab */}

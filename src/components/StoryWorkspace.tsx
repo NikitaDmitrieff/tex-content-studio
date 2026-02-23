@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Story, Scene } from '@/lib/types'
+import { Story, Scene, Character } from '@/lib/types'
 import { StepIndicator } from './StepIndicator'
 import { CharacterStep } from './CharacterStep'
 import { StoryArcStep } from './StoryArcStep'
@@ -20,9 +20,11 @@ const STEPS = [
 export function StoryWorkspace({
   initialStory,
   initialScenes,
+  lockedCharacter,
 }: {
   initialStory: Story
   initialScenes: Scene[]
+  lockedCharacter?: Character | null
 }) {
   const [step, setStep] = useState(1)
   const [story, setStory] = useState<Story>(initialStory)
@@ -36,15 +38,18 @@ export function StoryWorkspace({
     setScenes(newScenes)
   }
 
+  const backHref = lockedCharacter ? `/characters/${lockedCharacter.id}` : '/'
+  const backLabel = lockedCharacter ? `Back to ${lockedCharacter.name}` : 'Back to dashboard'
+
   return (
     <div className="fade-in">
       {/* Back navigation */}
       <Link
-        href="/"
+        href={backHref}
         className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to dashboard
+        {backLabel}
       </Link>
 
       {/* Step indicator */}
@@ -59,6 +64,7 @@ export function StoryWorkspace({
             story={story}
             onUpdate={handleStoryUpdate}
             onContinue={() => setStep(2)}
+            lockedCharacter={lockedCharacter}
           />
         )}
         {step === 2 && (
@@ -74,6 +80,7 @@ export function StoryWorkspace({
           <ImageGenerationStep
             story={story}
             scenes={scenes}
+            visualDna={lockedCharacter?.visual_dna}
             onScenesUpdate={handleScenesUpdate}
             onBack={() => setStep(2)}
             onContinue={() => setStep(4)}

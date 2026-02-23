@@ -1,19 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { Story, EmotionalTone, EMOTIONAL_TONES } from '@/lib/types'
-import { RefreshCw, ArrowRight, User, Briefcase, Calendar, BookOpen, Eye } from 'lucide-react'
+import { Story, EmotionalTone, EMOTIONAL_TONES, Character } from '@/lib/types'
+import { RefreshCw, ArrowRight, User, Briefcase, Calendar, BookOpen, Eye, Lock } from 'lucide-react'
 
 export function CharacterStep({
   story,
   onUpdate,
   onContinue,
+  lockedCharacter,
 }: {
   story: Story
   onUpdate: (updates: Partial<Story>) => void
   onContinue: () => void
+  lockedCharacter?: Character | null
 }) {
   const [generating, setGenerating] = useState(false)
+  const isLocked = Boolean(lockedCharacter)
 
   async function handleRegenerate() {
     setGenerating(true)
@@ -52,30 +55,44 @@ export function CharacterStep({
         <div>
           <h2 className="text-2xl font-bold">Character Profile</h2>
           <p className="text-sm text-zinc-400 mt-1">
-            Create a relatable, everyday character for the transformation story
+            {isLocked
+              ? 'Character fields are locked — loaded from your Characters library'
+              : 'Create a relatable, everyday character for the transformation story'}
           </p>
         </div>
-        <button
-          onClick={handleRegenerate}
-          disabled={generating}
-          className="btn-secondary flex items-center gap-2"
-        >
-          {generating ? (
-            <>
-              <div className="spinner" />
-              <span>Generating...</span>
-            </>
-          ) : (
-            <>
-              <RefreshCw className="w-4 h-4" />
-              <span>Regenerate Character</span>
-            </>
-          )}
-        </button>
+        {!isLocked && (
+          <button
+            onClick={handleRegenerate}
+            disabled={generating}
+            className="btn-secondary flex items-center gap-2"
+          >
+            {generating ? (
+              <>
+                <div className="spinner" />
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4" />
+                <span>Regenerate Character</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
+      {/* Locked character badge */}
+      {isLocked && lockedCharacter && (
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20">
+          <Lock className="w-4 h-4 text-[var(--accent)] shrink-0" />
+          <span className="text-sm text-[var(--accent-hover)]">
+            Loaded from Character: <span className="font-semibold">{lockedCharacter.name}</span>
+          </span>
+        </div>
+      )}
+
       {/* Character card */}
-      <div className="glass-card p-6 space-y-5">
+      <div className={`glass-card p-6 space-y-5 ${isLocked ? 'opacity-70' : ''}`}>
         {/* Name and basics row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-1">
@@ -87,7 +104,8 @@ export function CharacterStep({
               type="text"
               className="input-dark"
               value={story.character_name}
-              onChange={(e) => onUpdate({ character_name: e.target.value })}
+              onChange={(e) => !isLocked && onUpdate({ character_name: e.target.value })}
+              readOnly={isLocked}
               placeholder="e.g. Frank Delgado"
             />
           </div>
@@ -100,7 +118,8 @@ export function CharacterStep({
               type="number"
               className="input-dark"
               value={story.character_age || ''}
-              onChange={(e) => onUpdate({ character_age: parseInt(e.target.value) || 0 })}
+              onChange={(e) => !isLocked && onUpdate({ character_age: parseInt(e.target.value) || 0 })}
+              readOnly={isLocked}
               placeholder="30-65"
               min={18}
               max={80}
@@ -115,7 +134,8 @@ export function CharacterStep({
               type="text"
               className="input-dark"
               value={story.character_job}
-              onChange={(e) => onUpdate({ character_job: e.target.value })}
+              onChange={(e) => !isLocked && onUpdate({ character_job: e.target.value })}
+              readOnly={isLocked}
               placeholder="e.g. Long-haul trucker"
             />
           </div>
@@ -131,7 +151,8 @@ export function CharacterStep({
             className="input-dark"
             rows={4}
             value={story.character_backstory}
-            onChange={(e) => onUpdate({ character_backstory: e.target.value })}
+            onChange={(e) => !isLocked && onUpdate({ character_backstory: e.target.value })}
+            readOnly={isLocked}
             placeholder="Why have they never exercised? What's their daily life like? What's the emotional weight they carry?"
           />
         </div>
@@ -146,7 +167,8 @@ export function CharacterStep({
             className="input-dark"
             rows={3}
             value={story.character_physical}
-            onChange={(e) => onUpdate({ character_physical: e.target.value })}
+            onChange={(e) => !isLocked && onUpdate({ character_physical: e.target.value })}
+            readOnly={isLocked}
             placeholder="Body type, distinguishing features, typical clothing, general appearance..."
           />
         </div>

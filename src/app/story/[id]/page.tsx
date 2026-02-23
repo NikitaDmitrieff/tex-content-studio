@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
-import { Story, Scene } from '@/lib/types'
+import { Story, Scene, Character } from '@/lib/types'
 import { StoryWorkspace } from '@/components/StoryWorkspace'
 
 const DEMO_STORY: Story = {
@@ -18,9 +18,13 @@ const DEMO_STORY: Story = {
 
 const DEMO_SCENES: Scene[] = []
 
-async function getStoryData(id: string): Promise<{ story: Story; scenes: Scene[] }> {
+async function getStoryData(id: string): Promise<{
+  story: Story
+  scenes: Scene[]
+  character: Character | null
+}> {
   if (!isSupabaseConfigured || !supabase || id.startsWith('demo-') || id.startsWith('new-')) {
-    return { story: { ...DEMO_STORY, id }, scenes: DEMO_SCENES }
+    return { story: { ...DEMO_STORY, id }, scenes: DEMO_SCENES, character: null }
   }
 
   const { data: story, error } = await supabase
@@ -30,7 +34,7 @@ async function getStoryData(id: string): Promise<{ story: Story; scenes: Scene[]
     .single()
 
   if (error || !story) {
-    return { story: { ...DEMO_STORY, id }, scenes: DEMO_SCENES }
+    return { story: { ...DEMO_STORY, id }, scenes: DEMO_SCENES, character: null }
   }
 
   const { data: scenes } = await supabase
@@ -39,18 +43,32 @@ async function getStoryData(id: string): Promise<{ story: Story; scenes: Scene[]
     .eq('story_id', id)
     .order('order_index', { ascending: true })
 
-  return { story, scenes: scenes ?? [] }
+  let character: Character | null = null
+  if (story.character_id) {
+    const { data: charData } = await supabase
+      .from('characters')
+      .select('*')
+      .eq('id', story.character_id)
+      .single()
+    character = charData ?? null
+  }
+
+  return { story, scenes: scenes ?? [], character }
 }
 
 export const dynamic = 'force-dynamic'
 
 export default async function StoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { story, scenes } = await getStoryData(id)
+  const { story, scenes, character } = await getStoryData(id)
 
   return (
     <div className="min-h-screen px-6 py-8 max-w-6xl mx-auto">
-      <StoryWorkspace initialStory={story} initialScenes={scenes} />
+      <StoryWorkspace
+        initialStory={story}
+        initialScenes={scenes}
+        lockedCharacter={character}
+      />
     </div>
   )
 }

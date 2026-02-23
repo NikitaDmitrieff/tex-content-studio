@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
     }
     emotional_tone: string
     story_id: string
+    character_id?: string
+    previous_episodes_summary?: string
   }
 
   try {
@@ -23,7 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { character, emotional_tone, story_id } = body
+  const { character, emotional_tone, story_id, character_id, previous_episodes_summary } = body
 
   if (!character || !emotional_tone) {
     return NextResponse.json(
@@ -97,13 +99,35 @@ export async function POST(request: NextRequest) {
 
     const toneGuide = toneDescriptions[emotional_tone] || toneDescriptions['comeback']
 
+    const isSequel = Boolean(previous_episodes_summary)
+    const sequelContext = isSequel
+      ? `\n\nPREVIOUS EPISODES CONTEXT (this is a sequel — reference past events naturally):\n${previous_episodes_summary}\n\nSEQUEL RULES:\n- This is a CONTINUATION, not a reset. Don't start from scratch.\n- Reference specific things from the past episodes naturally in the narration (e.g. "since her breakthrough three months ago", "that day at the park still gets me")\n- The character has already started changing. Show where they are NOW and what new challenge or milestone this chapter is about.\n- Don't repeat the "I found an app" moment — that already happened.\n`
+      : ''
+
+    const storyFlowPrompt = isSequel
+      ? `STORY FLOW (sequel episode):
+1. Where I am now — pick up from where we left off. Reference something specific from before.
+2. A new challenge or plateau that's emerged. Not the same as the first episode's breaking point.
+3-4. This chapter's specific struggle or goal. What's the next mountain?
+5-6. The grind of this chapter. New small wins, new failures, new realizations.
+7-8. Something shifts specifically in THIS chapter. A milestone, a moment, a person.
+9-10. Where I land at the end of this chapter. Still going. Still me. But different again.`
+      : `STORY FLOW:
+1. My normal life. Make it feel heavy and specific. Not sad-movie sad — just... tired.
+2. The moment I actually see myself. A mirror, a photo, someone's comment. Something concrete.
+3. Breaking point. ONE specific moment that wrecked me. Not dramatic — quietly devastating.
+4. I find something on my phone. DO NOT name any app or brand. Say "this app" or "this thing" — like someone casually mentioning it. It's not the hero of the story, I am. One sentence max on this.
+5-6. Early days are brutal. Show specific failures. Specific small wins. The boring middle that nobody talks about.
+7-8. Things start shifting. Not overnight. Slowly. Clothes fit different. I sleep better. People notice but I pretend I don't notice them noticing.
+9-10. Where I am now. Not a transformation ad. Just... different. Better. Still me.`
+
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 2048,
       messages: [
         {
           role: 'user',
-          content: `Write a 7-10 slide TikTok photo carousel. First person. The narrator IS the character below.
+          content: `Write a 7-10 slide TikTok photo carousel. First person. The narrator IS the character below.${sequelContext}
 
 CHARACTER:
 ${character.name}, ${character.age}, ${character.job}
@@ -121,18 +145,11 @@ VOICE RULES — this is the most important part:
 - Use casual punctuation: "idk", "lol", "ngl", "tbh" sparingly — like a real person would
 - Some slides should be just 1 sentence. Others 2-3. Vary it.
 
-STORY FLOW:
-1. My normal life. Make it feel heavy and specific. Not sad-movie sad — just... tired.
-2. The moment I actually see myself. A mirror, a photo, someone's comment. Something concrete.
-3. Breaking point. ONE specific moment that wrecked me. Not dramatic — quietly devastating.
-4. I find something on my phone. DO NOT name any app or brand. Say "this app" or "this thing" — like someone casually mentioning it. It's not the hero of the story, I am. One sentence max on this.
-5-6. Early days are brutal. Show specific failures. Specific small wins. The boring middle that nobody talks about.
-7-8. Things start shifting. Not overnight. Slowly. Clothes fit different. I sleep better. People notice but I pretend I don't notice them noticing.
-9-10. Where I am now. Not a transformation ad. Just... different. Better. Still me.
+${storyFlowPrompt}
 
 SLIDE 1 MUST be a scroll-stopping hook. Something like "I was 54 and couldn't tie my own shoes" or "Nobody tells you what rock bottom smells like." Make it visceral and specific.
 
-THE APP MENTION: Maximum ONE slide can reference finding an app. It should feel throwaway — "downloaded this app at like 2am, honestly didn't think I'd open it again." The story is about the PERSON, not the product. The app is just a tool they happened to find.
+${!isSequel ? 'THE APP MENTION: Maximum ONE slide can reference finding an app. It should feel throwaway — "downloaded this app at like 2am, honestly didn\'t think I\'d open it again." The story is about the PERSON, not the product. The app is just a tool they happened to find.' : ''}
 
 Respond ONLY with a JSON array (no markdown, no code fences):
 [
@@ -174,9 +191,17 @@ Respond ONLY with a JSON array (no markdown, no code fences):
         sceneIds = insertedScenes.map((s: { id: string }) => s.id)
       }
 
+      const updatePayload: Record<string, unknown> = {
+        status: 'scenes_ready',
+        emotional_tone: emotional_tone,
+      }
+      if (character_id) {
+        updatePayload.character_id = character_id
+      }
+
       await supabase
         .from('stories')
-        .update({ status: 'scenes_ready', emotional_tone: emotional_tone })
+        .update(updatePayload)
         .eq('id', story_id)
     }
 

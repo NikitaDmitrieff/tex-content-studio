@@ -5,13 +5,14 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 export async function POST(request: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY
 
-  let body: { tone?: string; excluded_jobs?: string[] } = {}
+  let body: { tone?: string; excluded_jobs?: string[]; save_to_character?: boolean } = {}
   try {
     body = await request.json()
   } catch {
     body = {}
   }
   const tone = body.tone || 'comeback'
+  const saveToCharacter = body.save_to_character ?? false
 
   if (!apiKey) {
     return NextResponse.json(
@@ -32,8 +33,11 @@ export async function POST(request: NextRequest) {
           ],
           reason_never_exercised:
             "Always told himself he'd start 'next month.' Believes gyms are for young people and vanity. Deep down, afraid of failing publicly.",
+          visual_dna:
+            "same heavyset man, mid-50s, ruddy complexion, five o'clock shadow, stretched trucker cap, flannel shirt, warm natural light, candid smartphone photo quality",
         },
         id: `new-${Date.now()}`,
+        character_id: null,
       },
       { status: 200 }
     )
@@ -57,6 +61,7 @@ Requirements:
 - Detailed personality traits that make them sympathetic
 - A compelling reason why they've never exercised before
 - A backstory with emotional depth
+- A visual_dna: a short, precise image-locking prompt prefix (15-25 words) that describes THIS character's consistent visual identity — their age range, distinctive physical features, skin tone, typical clothing, and photo style. Format: "same [gender], [age range], [hair], [skin tone], [signature clothing], [no makeup or other key feature], warm natural light, candid smartphone photo quality"
 
 Respond ONLY with a JSON object (no markdown, no code fences):
 {
@@ -66,7 +71,8 @@ Respond ONLY with a JSON object (no markdown, no code fences):
   "backstory": "2-3 sentences about their life situation and emotional weight",
   "physical_description": "Detailed physical appearance, body type, typical clothing",
   "personality_traits": ["trait1", "trait2", "trait3"],
-  "reason_never_exercised": "1-2 sentences explaining why they never started"
+  "reason_never_exercised": "1-2 sentences explaining why they never started",
+  "visual_dna": "short locking prompt prefix for image consistency"
 }`,
         },
       ],
@@ -81,8 +87,28 @@ Respond ONLY with a JSON object (no markdown, no code fences):
     const character = JSON.parse(cleanedText)
 
     let storyId: string | null = null
+    let characterId: string | null = null
 
     if (isSupabaseConfigured && supabase) {
+      if (saveToCharacter) {
+        const { data: charData, error: charError } = await supabase
+          .from('characters')
+          .insert({
+            name: character.name,
+            age: character.age,
+            job: character.job,
+            backstory: character.backstory,
+            physical_description: character.physical_description,
+            visual_dna: character.visual_dna,
+          })
+          .select('id')
+          .single()
+
+        if (!charError && charData) {
+          characterId = charData.id
+        }
+      }
+
       const { data, error } = await supabase
         .from('stories')
         .insert({
@@ -93,6 +119,7 @@ Respond ONLY with a JSON object (no markdown, no code fences):
           character_physical: character.physical_description,
           emotional_tone: tone,
           status: 'draft',
+          ...(characterId ? { character_id: characterId } : {}),
         })
         .select('id')
         .single()
@@ -105,6 +132,7 @@ Respond ONLY with a JSON object (no markdown, no code fences):
     return NextResponse.json({
       character,
       id: storyId || `new-${Date.now()}`,
+      character_id: characterId,
     })
   } catch (err) {
     console.error('Character generation error:', err)

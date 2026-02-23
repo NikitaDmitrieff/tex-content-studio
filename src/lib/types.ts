@@ -14,6 +14,7 @@ export type Story = {
   character_job: string
   character_backstory: string
   character_physical: string
+  visual_dna?: string | null
   emotional_tone: EmotionalTone
   status: StoryStatus
   character_id?: string | null

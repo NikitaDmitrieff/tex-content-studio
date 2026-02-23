@@ -58,8 +58,8 @@ export async function POST(request: NextRequest) {
       .map((s) => s.slide_index)
     const dropOffSlide = demoScores.reduce(
       (minIdx, s) =>
-        s.swipe_probability < demoScores[minIdx].swipe_probability ? s.slide_index : minIdx,
-      0
+        s.swipe_probability < (demoScores[minIdx]?.swipe_probability ?? 1) ? s.slide_index : minIdx,
+      demoScores[0]?.slide_index ?? 0
     )
 
     const result: SwipeMomentumResult = {

@@ -122,6 +122,7 @@ export function SwipeMomentumPanel({
           })),
         }),
       })
+      if (!res.ok) throw new Error(`Analysis failed: ${res.status}`)
       const data: SwipeMomentumResult = await res.json()
       setResult(data)
       setFixedSlides(new Set())
@@ -185,6 +186,7 @@ export function SwipeMomentumPanel({
           })),
         }),
       })
+      if (!res.ok) throw new Error(`Re-analysis failed: ${res.status}`)
       const newResult: SwipeMomentumResult = await res.json()
       const prevGrade = result.grade
       setResult(newResult)

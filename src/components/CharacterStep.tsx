@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Story, EmotionalTone, EMOTIONAL_TONES, Character } from '@/lib/types'
-import { RefreshCw, ArrowRight, User, Briefcase, Calendar, BookOpen, Eye, Lock, Camera, Upload } from 'lucide-react'
+import { RefreshCw, User, Briefcase, Calendar, BookOpen, Eye, Lock, Camera, Upload } from 'lucide-react'
 import { PhotoUploadZone } from './PhotoUploadZone'
 import { PhotoAnalysis } from '@/app/api/analyze-photo/route'
 
@@ -11,12 +11,10 @@ type ExtractedField = 'character_physical' | 'visual_dna' | 'character_name' | '
 export function CharacterStep({
   story,
   onUpdate,
-  onContinue,
   lockedCharacter,
 }: {
   story: Story
   onUpdate: (updates: Partial<Story>) => void
-  onContinue: () => void
   lockedCharacter?: Character | null
 }) {
   const [generating, setGenerating] = useState(false)
@@ -115,14 +113,6 @@ export function CharacterStep({
       setAnalyzing(false)
     }
   }
-
-  const canContinue =
-    story.character_name &&
-    story.character_age &&
-    story.character_job &&
-    story.character_backstory &&
-    story.character_physical &&
-    story.emotional_tone
 
   function ExtractedBadge() {
     return (
@@ -338,17 +328,6 @@ export function CharacterStep({
         </div>
       </div>
 
-      {/* Continue button */}
-      <div className="flex justify-end">
-        <button
-          onClick={onContinue}
-          disabled={!canContinue}
-          className="btn-accent flex items-center gap-2"
-        >
-          <span>Continue to Story Arc</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
     </div>
   )
 }

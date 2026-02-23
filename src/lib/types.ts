@@ -140,6 +140,36 @@ export type RealityAnchors = {
   proof_scene_index?: number | null
 }
 
+export type PersonaReaction = {
+  name: string
+  age: number
+  job: string
+  city: string
+  emoji: string
+  completion_likelihood: number
+  predicted_comment: string
+  would_save: boolean
+  would_share: boolean
+  drop_off_slide: number | null
+  emotional_reaction: string
+}
+
+export type SceneScore = {
+  scene_index: number
+  engagement_score: number
+  danger_zone: boolean
+  note: string
+  rewrite_suggestion?: string
+}
+
+export type ScreeningResult = {
+  personas: PersonaReaction[]
+  scene_scores: SceneScore[]
+  virality_score: number
+  verdict: 'ready' | 'needs_work' | 'reshoot'
+  key_improvements: string[]
+}
+
 export const STATUS_CONFIG: Record<StoryStatus, { label: string; color: string }> = {
   draft: { label: 'Draft', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30' },
   scenes_ready: { label: 'Scenes Ready', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },

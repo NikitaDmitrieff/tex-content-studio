@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Story, Scene, ScanResult } from '@/lib/types'
+import { Story, Scene, ScanResult, ScreeningResult } from '@/lib/types'
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,8 +12,10 @@ import {
   Pencil,
   X,
   Check,
+  Clapperboard,
 } from 'lucide-react'
 import { AuthenticityScanner } from './AuthenticityScanner'
+import { AudienceScreeningRoom } from './AudienceScreeningRoom'
 
 export function StoryArcStep({
   story,
@@ -32,6 +34,9 @@ export function StoryArcStep({
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editForm, setEditForm] = useState<Partial<Scene>>({})
   const [scanResults, setScanResults] = useState<ScanResult[]>([])
+  const [screeningResult, setScreeningResult] = useState<ScreeningResult | null>(null)
+  const [showScreeningRoom, setShowScreeningRoom] = useState(false)
+  const [screeningLoading, setScreeningLoading] = useState(false)
 
   async function handleGenerate() {
     setGenerating(true)
@@ -115,6 +120,32 @@ export function StoryArcStep({
       console.error('Failed to generate scenes:', err)
     } finally {
       setGenerating(false)
+    }
+  }
+
+  async function handleScreenStory() {
+    setScreeningLoading(true)
+    setShowScreeningRoom(true)
+    try {
+      const res = await fetch('/api/screen-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenes: scenes.map((s) => ({ description: s.description, emotional_beat: s.emotional_beat })),
+          character_name: story.character_name,
+          character_job: story.character_job,
+          character_age: story.character_age,
+          emotional_tone: story.emotional_tone,
+        }),
+      })
+      const data = await res.json()
+      if (data.personas) {
+        setScreeningResult(data)
+      }
+    } catch (err) {
+      console.error('Screening failed:', err)
+    } finally {
+      setScreeningLoading(false)
     }
   }
 
@@ -408,6 +439,30 @@ export function StoryArcStep({
             onScanComplete={setScanResults}
             isRealityGrounded={story.is_reality_grounded}
           />
+
+          {/* Audience Screening Room trigger */}
+          <button
+            onClick={handleScreenStory}
+            disabled={screeningLoading}
+            className="w-full glass-card p-4 flex items-center justify-center gap-2 text-sm font-medium text-zinc-300 hover:text-white hover:border-[var(--accent)]/30 transition-all"
+          >
+            {screeningLoading ? (
+              <>
+                <div className="spinner w-4 h-4" />
+                <span>Chargement de la salle...</span>
+              </>
+            ) : (
+              <>
+                <Clapperboard className="w-4 h-4 text-[var(--accent)]" />
+                <span>Tester avec le public 🎬</span>
+                {screeningResult && (
+                  <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-[var(--accent)]/20 text-[var(--accent)] font-semibold">
+                    Score: {screeningResult.virality_score}
+                  </span>
+                )}
+              </>
+            )}
+          </button>
         </div>
       )}
 
@@ -422,10 +477,31 @@ export function StoryArcStep({
           disabled={scenes.length === 0}
           className="btn-accent flex items-center gap-2"
         >
+          {screeningResult && (
+            <span className="text-xs font-semibold opacity-80">
+              Score: {screeningResult.virality_score} →
+            </span>
+          )}
           Continue to Images
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Audience Screening Room modal */}
+      {showScreeningRoom && (
+        <AudienceScreeningRoom
+          result={screeningResult}
+          scenes={scenes}
+          onScenesUpdate={onScenesUpdate}
+          onContinue={() => {
+            setShowScreeningRoom(false)
+            onContinue()
+          }}
+          onClose={() => setShowScreeningRoom(false)}
+          onRerun={handleScreenStory}
+          isLoading={screeningLoading}
+        />
+      )}
     </div>
   )
 }

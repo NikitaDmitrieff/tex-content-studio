@@ -21,6 +21,7 @@ export function ImageGenerationStep({
   onScenesUpdate,
   onBack,
   onContinue,
+  swipeScore,
 }: {
   story: Story
   scenes: Scene[]
@@ -28,6 +29,7 @@ export function ImageGenerationStep({
   onScenesUpdate: (scenes: Scene[]) => void
   onBack: () => void
   onContinue: () => void
+  swipeScore?: number | null
 }) {
   const [statuses, setStatuses] = useState<Record<string, GenerationStatus>>(() => {
     const initial: Record<string, GenerationStatus> = {}
@@ -37,6 +39,7 @@ export function ImageGenerationStep({
     return initial
   })
   const [generatingAll, setGeneratingAll] = useState(false)
+  const [warningDismissed, setWarningDismissed] = useState(false)
 
   async function generateImages(sceneIndices: number[]) {
     const scenesToGenerate = sceneIndices.map((i) => scenes[i])
@@ -143,6 +146,25 @@ export function ImageGenerationStep({
           )}
         </button>
       </div>
+
+      {/* Pre-image gate: swipe score warning */}
+      {swipeScore !== null && swipeScore !== undefined && swipeScore < 70 && !warningDismissed && (
+        <div className="glass-card p-4 border-amber-500/30 bg-amber-500/5 flex items-start gap-3">
+          <span className="text-amber-400 text-lg shrink-0">⚠</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-300">Low completion risk detected</p>
+            <p className="text-xs text-zinc-400 mt-1">
+              Your carousel scored {swipeScore}/100. Fixing story structure before generating images saves credits.
+            </p>
+          </div>
+          <button
+            onClick={() => setWarningDismissed(true)}
+            className="text-xs text-zinc-500 hover:text-zinc-300 shrink-0"
+          >
+            Proceed anyway
+          </button>
+        </div>
+      )}
 
       {/* Progress bar */}
       {anyGenerating && (

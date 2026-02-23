@@ -52,6 +52,22 @@ export const EMOTIONAL_TONES: { value: EmotionalTone; label: string; emoji: stri
   { value: 'against_all_odds', label: 'Against All Odds', emoji: '🏆' },
 ]
 
+export type VoiceoverScriptSlide = {
+  slide_number: number
+  timing_seconds: number
+  narration: string
+}
+
+export type MusicMood = 'raw/lo-fi' | 'emotional/piano' | 'triumphant/upbeat' | 'quiet/ambient'
+
+export type VoiceoverScript = {
+  intro_hook: string
+  slides: VoiceoverScriptSlide[]
+  outro_cta: string
+  total_duration_seconds: number
+  music_mood: MusicMood
+}
+
 export type ScanResult = {
   slide_index: number
   human_score: number

@@ -15,10 +15,12 @@ import {
   MessageSquare,
   Sparkles,
   Globe,
+  Video,
 } from 'lucide-react'
 import { EngagementKit } from './EngagementKit'
+import { VoiceoverScriptPanel } from './VoiceoverScriptPanel'
 
-type ActiveTab = 'export' | 'engagement'
+type ActiveTab = 'export' | 'engagement' | 'voiceover'
 
 type PostCaption = {
   hook: string
@@ -237,6 +239,19 @@ export function ExportStep({
           <Sparkles className="w-3.5 h-3.5" />
           Engagement Kit
         </button>
+        {story.status === 'complete' && (
+          <button
+            onClick={() => setActiveTab('voiceover')}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
+              activeTab === 'voiceover'
+                ? 'border-[var(--accent)] text-white'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            <Video className="w-3.5 h-3.5" />
+            Voiceover Script
+          </button>
+        )}
       </div>
 
       {/* Engagement Kit tab */}
@@ -247,6 +262,11 @@ export function ExportStep({
           existingCaption={caption}
           language={language}
         />
+      )}
+
+      {/* Voiceover Script tab */}
+      {activeTab === 'voiceover' && (
+        <VoiceoverScriptPanel story={story} scenes={scenes} />
       )}
 
       {/* Export & Caption tab */}
@@ -594,6 +614,16 @@ export function ExportStep({
 
       {/* Navigation shown on engagement tab too */}
       {activeTab === 'engagement' && (
+        <div className="flex justify-between">
+          <button onClick={onBack} className="btn-secondary flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Images
+          </button>
+        </div>
+      )}
+
+      {/* Navigation shown on voiceover tab */}
+      {activeTab === 'voiceover' && (
         <div className="flex justify-between">
           <button onClick={onBack} className="btn-secondary flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />

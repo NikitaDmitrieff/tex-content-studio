@@ -7,6 +7,16 @@ export type EmotionalTone =
 
 export type StoryStatus = 'draft' | 'scenes_ready' | 'images_generating' | 'complete'
 
+export type HeartbeatScene = {
+  position: number   // 1–8
+  intensity: number  // 1–10
+  label?: string     // optional emotional moment label
+}
+
+export type HeartbeatArc = {
+  scenes: HeartbeatScene[]
+}
+
 export type Story = {
   id: string
   character_name: string
@@ -25,6 +35,8 @@ export type Story = {
   hook_variants?: HookWithScoring[] | null
   comment_intelligence?: CommentIntelligence | null
   comment_seeds?: CommentSeedKit | null
+  heartbeat_arc?: HeartbeatArc | null
+  arc_template_used?: string | null
 }
 
 export type Character = {

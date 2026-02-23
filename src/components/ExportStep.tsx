@@ -14,7 +14,11 @@ import {
   FileText,
   MessageSquare,
   Sparkles,
+  Globe,
 } from 'lucide-react'
+import { EngagementKit } from './EngagementKit'
+
+type ActiveTab = 'export' | 'engagement'
 
 type PostCaption = {
   hook: string
@@ -49,6 +53,8 @@ export function ExportStep({
   onScenesUpdate: (scenes: Scene[]) => void
   onBack: () => void
 }) {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('export')
+  const [language, setLanguage] = useState<'en' | 'fr'>('en')
   const [currentSlide, setCurrentSlide] = useState(0)
   const [downloading, setDownloading] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
@@ -176,24 +182,75 @@ export function ExportStep({
             Preview carousel, generate post caption, and download
           </p>
         </div>
-        <button
-          onClick={handleDownloadAll}
-          disabled={downloading || scenesWithImages.length === 0}
-          className="btn-accent flex items-center gap-2"
-        >
-          {downloading ? (
-            <>
-              <div className="spinner" />
-              <span>Packaging...</span>
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4" />
-              <span>Download All</span>
-            </>
+        <div className="flex items-center gap-2">
+          {/* Language toggle */}
+          <button
+            onClick={() => setLanguage((l) => (l === 'en' ? 'fr' : 'en'))}
+            className="btn-secondary flex items-center gap-1.5 text-xs py-1.5 px-3"
+            title="Toggle language"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            {language === 'en' ? 'EN' : 'FR'}
+          </button>
+          {activeTab === 'export' && (
+            <button
+              onClick={handleDownloadAll}
+              disabled={downloading || scenesWithImages.length === 0}
+              className="btn-accent flex items-center gap-2"
+            >
+              {downloading ? (
+                <>
+                  <div className="spinner" />
+                  <span>Packaging...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  <span>Download All</span>
+                </>
+              )}
+            </button>
           )}
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex border-b border-white/[0.08]">
+        <button
+          onClick={() => setActiveTab('export')}
+          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === 'export'
+              ? 'border-[var(--accent)] text-white'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
+          }`}
+        >
+          Export &amp; Caption
+        </button>
+        <button
+          onClick={() => setActiveTab('engagement')}
+          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
+            activeTab === 'engagement'
+              ? 'border-[var(--accent)] text-white'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Engagement Kit
         </button>
       </div>
+
+      {/* Engagement Kit tab */}
+      {activeTab === 'engagement' && (
+        <EngagementKit
+          story={story}
+          scenes={scenes}
+          existingCaption={caption}
+          language={language}
+        />
+      )}
+
+      {/* Export & Caption tab */}
+      {activeTab === 'export' && (<>
 
       {/* Post Caption — PRIMARY section */}
       <div className="glass-card p-6 border-[var(--accent)]/20">
@@ -533,6 +590,17 @@ export function ExportStep({
           export
         </div>
       </div>
+      </>)}
+
+      {/* Navigation shown on engagement tab too */}
+      {activeTab === 'engagement' && (
+        <div className="flex justify-between">
+          <button onClick={onBack} className="btn-secondary flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Images
+          </button>
+        </div>
+      )}
     </div>
   )
 }

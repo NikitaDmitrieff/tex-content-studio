@@ -266,3 +266,26 @@ export const STATUS_CONFIG: Record<StoryStatus, { label: string; color: string }
   images_generating: { label: 'Generating', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
   complete: { label: 'Complete', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
 }
+
+// ── Swipe Momentum Analyzer ──────────────────────────────────────────────────
+
+export type MomentumType = 'strong' | 'building' | 'flat' | 'drop'
+
+export type SlideSwipeScore = {
+  slide_index: number
+  swipe_probability: number       // 0-1
+  momentum_type: MomentumType
+  weakness: string
+  fix_suggestion: string
+  rewritten_caption: string
+}
+
+export type SwipeMomentumResult = {
+  slide_scores: SlideSwipeScore[]
+  overall_score: number           // 0-100
+  grade: 'A' | 'B' | 'C' | 'D' | 'F'
+  drop_off_slide: number
+  completion_rate_estimate: string
+  critical_fixes: number[]
+  strong_slides: number[]
+}

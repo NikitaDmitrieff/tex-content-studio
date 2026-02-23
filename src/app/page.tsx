@@ -1,7 +1,7 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { Story, STATUS_CONFIG } from '@/lib/types'
 import Link from 'next/link'
-import { Plus, Film, Sparkles, AlertCircle } from 'lucide-react'
+import { Plus, Film, Sparkles, AlertCircle, Calendar } from 'lucide-react'
 import { NewStoryButton } from '@/components/NewStoryButton'
 
 const DEMO_STORIES: (Story & { scene_count: number; first_image: string | null })[] = [
@@ -108,7 +108,16 @@ export default async function Dashboard() {
               Content distribution pipeline for Tex Fitness. Generate UGC-style carousel stories, AI images, post captions, and export ready-to-post TikTok content — all from one place.
             </p>
           </div>
-          <NewStoryButton />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/content-week"
+              className="btn-secondary flex items-center gap-2"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Plan a Week</span>
+            </Link>
+            <NewStoryButton />
+          </div>
         </div>
       </header>
 
@@ -130,7 +139,7 @@ export default async function Dashboard() {
 
       {/* Stories grid */}
       {stories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-32 fade-in">
+        <div className="flex flex-col items-center justify-center py-20 fade-in">
           <div className="w-20 h-20 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-6">
             <Sparkles className="w-8 h-8 text-zinc-600" />
           </div>
@@ -139,10 +148,35 @@ export default async function Dashboard() {
             Create your first TikTok carousel story. Each story generates a character,
             builds a transformation arc, creates images, and exports ready-to-post slides.
           </p>
-          <NewStoryButton />
+          <div className="flex items-center gap-3">
+            <NewStoryButton />
+            <Link
+              href="/content-week"
+              className="btn-secondary flex items-center gap-2"
+            >
+              <Calendar className="w-4 h-4" />
+              Plan a Content Week →
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 fade-in">
+          {/* Plan a Content Week card */}
+          <Link
+            href="/content-week"
+            className="glass-card glass-card-interactive p-5 block group border-dashed"
+          >
+            <div className="aspect-video rounded-lg bg-white/[0.02] border border-dashed border-white/[0.08] mb-4 flex items-center justify-center">
+              <Calendar className="w-8 h-8 text-zinc-600 group-hover:text-[var(--accent)] transition-colors" />
+            </div>
+            <h3 className="font-semibold text-zinc-400 group-hover:text-[var(--accent)] transition-colors mb-1">
+              Plan a Content Week →
+            </h3>
+            <p className="text-xs text-zinc-600">
+              Generate 3, 5, or 7 stories at once with parallel AI generation and a Kanban review board.
+            </p>
+          </Link>
+
           {stories.map((story) => {
             const statusCfg = STATUS_CONFIG[story.status]
             return (

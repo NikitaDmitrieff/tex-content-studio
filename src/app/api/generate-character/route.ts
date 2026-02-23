@@ -1,9 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY
+
+  let body: { tone?: string; excluded_jobs?: string[] } = {}
+  try {
+    body = await request.json()
+  } catch {
+    body = {}
+  }
+  const tone = body.tone || 'comeback'
 
   if (!apiKey) {
     return NextResponse.json(
@@ -83,7 +91,7 @@ Respond ONLY with a JSON object (no markdown, no code fences):
           character_job: character.job,
           character_backstory: character.backstory,
           character_physical: character.physical_description,
-          emotional_tone: 'comeback',
+          emotional_tone: tone,
           status: 'draft',
         })
         .select('id')

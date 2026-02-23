@@ -154,6 +154,8 @@ Respond ONLY with a JSON array (no markdown, no code fences):
     const cleanedText = textContent.text.replace(/```json\n?|\n?```/g, '').trim()
     const scenes = JSON.parse(cleanedText)
 
+    let sceneIds: string[] = []
+
     if (isSupabaseConfigured && supabase && story_id && !story_id.startsWith('new-') && !story_id.startsWith('demo-')) {
       await supabase.from('scenes').delete().eq('story_id', story_id)
 
@@ -167,14 +169,18 @@ Respond ONLY with a JSON array (no markdown, no code fences):
         })
       )
 
-      await supabase.from('scenes').insert(sceneRows)
+      const { data: insertedScenes } = await supabase.from('scenes').insert(sceneRows).select('id')
+      if (insertedScenes) {
+        sceneIds = insertedScenes.map((s: { id: string }) => s.id)
+      }
+
       await supabase
         .from('stories')
-        .update({ status: 'scenes_ready' })
+        .update({ status: 'scenes_ready', emotional_tone: emotional_tone })
         .eq('id', story_id)
     }
 
-    return NextResponse.json({ scenes })
+    return NextResponse.json({ scenes, scene_ids: sceneIds })
   } catch (err) {
     console.error('Story generation error:', err)
     return NextResponse.json(

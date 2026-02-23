@@ -18,7 +18,9 @@ import {
   Video,
   Zap,
   Music,
+  Eye,
 } from 'lucide-react'
+import Link from 'next/link'
 import { EngagementKit } from './EngagementKit'
 import { VoiceoverScriptPanel } from './VoiceoverScriptPanel'
 import { RealityAnchorCard } from './RealityAnchorCard'
@@ -762,6 +764,13 @@ export function ExportStep({
             {scenesWithImages.length} slide{scenesWithImages.length !== 1 ? 's' : ''} ready for
             export
           </div>
+          <Link
+            href={`/stories/${story.id}/preview`}
+            className="btn-secondary flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            Preview Again
+          </Link>
           <button
             onClick={() => setShowCommentStorm(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"

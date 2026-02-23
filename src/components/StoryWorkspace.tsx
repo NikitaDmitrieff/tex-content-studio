@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Story, Scene, Character } from '@/lib/types'
+import { Story, Scene, Character, ScreeningResult } from '@/lib/types'
 import { StepIndicator } from './StepIndicator'
 import { CharacterStep } from './CharacterStep'
 import { StoryArcStep } from './StoryArcStep'
@@ -29,6 +29,7 @@ export function StoryWorkspace({
   const [step, setStep] = useState(1)
   const [story, setStory] = useState<Story>(initialStory)
   const [scenes, setScenes] = useState<Scene[]>(initialScenes)
+  const [screeningResult, setScreeningResult] = useState<ScreeningResult | null>(null)
 
   function handleStoryUpdate(updates: Partial<Story>) {
     setStory((prev) => ({ ...prev, ...updates }))
@@ -74,6 +75,7 @@ export function StoryWorkspace({
             onScenesUpdate={handleScenesUpdate}
             onBack={() => setStep(1)}
             onContinue={() => setStep(3)}
+            onScreeningComplete={setScreeningResult}
           />
         )}
         {step === 3 && (
@@ -92,6 +94,7 @@ export function StoryWorkspace({
             scenes={scenes}
             onScenesUpdate={handleScenesUpdate}
             onBack={() => setStep(3)}
+            screeningResult={screeningResult}
           />
         )}
       </div>

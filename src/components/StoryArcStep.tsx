@@ -23,12 +23,14 @@ export function StoryArcStep({
   onScenesUpdate,
   onBack,
   onContinue,
+  onScreeningComplete,
 }: {
   story: Story
   scenes: Scene[]
   onScenesUpdate: (scenes: Scene[]) => void
   onBack: () => void
   onContinue: () => void
+  onScreeningComplete?: (result: ScreeningResult) => void
 }) {
   const [generating, setGenerating] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -141,6 +143,7 @@ export function StoryArcStep({
       const data = await res.json()
       if (data.personas) {
         setScreeningResult(data)
+        onScreeningComplete?.(data)
       }
     } catch (err) {
       console.error('Screening failed:', err)

@@ -1,6 +1,95 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { ScreeningResult } from '@/lib/types'
+import { ScreeningResult, HookPersonaScore } from '@/lib/types'
+
+const HOOK_PERSONAS = [
+  { name: 'Sylvie Moreau', emoji: '👩‍⚕️', age: 47, job: 'Aide-soignante', city: 'Bretagne' },
+  { name: 'Karim Benali', emoji: '🚖', age: 39, job: 'Chauffeur de taxi', city: 'Lyon' },
+  { name: 'Brigitte Tessier', emoji: '👩‍💼', age: 55, job: 'Secrétaire médicale', city: 'Bordeaux' },
+  { name: 'Thomas Dupont', emoji: '🎓', age: 28, job: 'Étudiant en commerce', city: 'Paris' },
+  { name: 'Nathalie Roux', emoji: '🏠', age: 51, job: 'Assistante maternelle', city: 'Toulouse' },
+]
+
+async function handleHookTestMode(
+  apiKey: string | undefined,
+  hookText: string,
+  characterName: string,
+  characterJob: string,
+  characterAge: number,
+  emotionalTone: string
+): Promise<NextResponse> {
+  if (!apiKey) {
+    const scores: HookPersonaScore[] = HOOK_PERSONAS.map((p) => ({
+      persona_name: p.name,
+      persona_emoji: p.emoji,
+      scroll_stop_likelihood: Math.floor(Math.random() * 60) + 30,
+      predicted_reaction: `${p.name.split(' ')[0]} s'arrête sur ce hook — ça lui parle directement.`,
+    }))
+    const scroll_stop_score = Math.round(scores.reduce((s, p) => s + p.scroll_stop_likelihood, 0) / scores.length)
+    return NextResponse.json({ persona_scores: scores, scroll_stop_score })
+  }
+
+  const client = new Anthropic({ apiKey })
+
+  const personasText = HOOK_PERSONAS.map(
+    (p, i) => `${i + 1}. ${p.name}, ${p.age} ans, ${p.job} à ${p.city}`
+  ).join('\n')
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1024,
+    messages: [
+      {
+        role: 'user',
+        content: `Tu es un expert en psychologie des audiences TikTok françaises. Évalue ce hook d'accroche pour chacun des 5 personas suivants.
+
+Hook à évaluer : "${hookText}"
+
+Contexte : Story de transformation de ${characterName}, ${characterAge} ans, ${characterJob} (ton: ${emotionalTone})
+
+Personas :
+${personasText}
+
+Pour chaque persona, détermine :
+- scroll_stop_likelihood : probabilité 0-100 qu'il/elle s'arrête sur ce hook
+- predicted_reaction : une réaction courte et authentique en français (max 15 mots)
+
+Réponds UNIQUEMENT en JSON valide (pas de markdown) :
+{
+  "persona_scores": [
+    {
+      "persona_name": "Sylvie Moreau",
+      "persona_emoji": "👩‍⚕️",
+      "scroll_stop_likelihood": 78,
+      "predicted_reaction": "Ça me parle exactement, j'aurais pu écrire ça moi-même"
+    }
+  ]
+}`,
+      },
+    ],
+  })
+
+  const textContent = message.content.find((c) => c.type === 'text')
+  if (!textContent || textContent.type !== 'text') {
+    throw new Error('No text response from Claude')
+  }
+
+  const cleaned = textContent.text.replace(/```json\n?|\n?```/g, '').trim()
+  const parsed = JSON.parse(cleaned)
+  const scores: HookPersonaScore[] = parsed.persona_scores
+
+  // Ensure emojis are set (Claude might not preserve them exactly)
+  const scoredWithEmojis = scores.map((s, i) => ({
+    ...s,
+    persona_emoji: HOOK_PERSONAS[i]?.emoji ?? s.persona_emoji,
+  }))
+
+  const scroll_stop_score = Math.round(
+    scoredWithEmojis.reduce((sum, p) => sum + p.scroll_stop_likelihood, 0) / scoredWithEmojis.length
+  )
+
+  return NextResponse.json({ persona_scores: scoredWithEmojis, scroll_stop_score })
+}
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -11,6 +100,8 @@ export async function POST(request: NextRequest) {
     character_job: string
     character_age: number
     emotional_tone: string
+    hook_test_mode?: boolean
+    hook_text?: string
   }
 
   try {
@@ -19,7 +110,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { scenes, character_name, character_job, character_age, emotional_tone } = body
+  const { scenes, character_name, character_job, character_age, emotional_tone, hook_test_mode, hook_text } = body
+
+  // Hook test mode: lightweight scoring of a single hook text
+  if (hook_test_mode) {
+    if (!hook_text) {
+      return NextResponse.json({ error: 'Missing hook_text for hook_test_mode' }, { status: 400 })
+    }
+    try {
+      return await handleHookTestMode(apiKey, hook_text, character_name, character_job, character_age, emotional_tone)
+    } catch (err) {
+      console.error('Hook scoring error:', err)
+      return NextResponse.json({ error: 'Failed to score hook', details: String(err) }, { status: 500 })
+    }
+  }
 
   if (!scenes || !Array.isArray(scenes) || scenes.length === 0) {
     return NextResponse.json({ error: 'Missing or empty scenes array' }, { status: 400 })

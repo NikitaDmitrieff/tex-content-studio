@@ -1,10 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Story, Scene, ScanResult, ScreeningResult, SwipeMomentumResult } from '@/lib/types'
+import { Story, Scene } from '@/lib/types'
 import {
-  ArrowLeft,
-  ArrowRight,
   GripVertical,
   Trash2,
   PlusCircle,
@@ -12,41 +10,20 @@ import {
   Pencil,
   X,
   Check,
-  Clapperboard,
-  Activity,
 } from 'lucide-react'
-import { AuthenticityScanner } from './AuthenticityScanner'
-import { AudienceScreeningRoom } from './AudienceScreeningRoom'
-import { SwipeMomentumPanel } from './SwipeMomentumPanel'
-import { FormatAdapterPanel } from './FormatAdapterPanel'
-import { ArcOverlay } from './ArcOverlay'
-import { CaptionHeatmapPanel } from './CaptionHeatmapPanel'
 
 export function StoryArcStep({
   story,
   scenes,
   onScenesUpdate,
-  onBack,
-  onContinue,
-  onScreeningComplete,
-  onSwipeAnalysisComplete,
 }: {
   story: Story
   scenes: Scene[]
   onScenesUpdate: (scenes: Scene[]) => void
-  onBack: () => void
-  onContinue: () => void
-  onScreeningComplete?: (result: ScreeningResult) => void
-  onSwipeAnalysisComplete?: (result: SwipeMomentumResult | null) => void
 }) {
   const [generating, setGenerating] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [editForm, setEditForm] = useState<Partial<Scene>>({})
-  const [scanResults, setScanResults] = useState<ScanResult[]>([])
-  const [screeningResult, setScreeningResult] = useState<ScreeningResult | null>(null)
-  const [showScreeningRoom, setShowScreeningRoom] = useState(false)
-  const [screeningLoading, setScreeningLoading] = useState(false)
-  const [swipeMomentumResult, setSwipeMomentumResult] = useState<SwipeMomentumResult | null>(null)
 
   async function handleGenerate() {
     setGenerating(true)
@@ -104,61 +81,11 @@ export function StoryArcStep({
           })
         )
         onScenesUpdate(newScenes)
-
-        // Auto-run authenticity scan for reality-grounded stories
-        if (story.is_reality_grounded && newScenes.length > 0) {
-          try {
-            const scanRes = await fetch('/api/scan-authenticity', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                scenes: newScenes.map((s) => ({
-                  description: s.description,
-                  emotional_beat: s.emotional_beat,
-                })),
-                language: 'en',
-              }),
-            })
-            const scanData = await scanRes.json()
-            if (scanData.results) {
-              setScanResults(scanData.results)
-            }
-          } catch {
-            // auto-scan is optional — ignore errors
-          }
-        }
       }
     } catch (err) {
       console.error('Failed to generate scenes:', err)
     } finally {
       setGenerating(false)
-    }
-  }
-
-  async function handleScreenStory() {
-    setScreeningLoading(true)
-    setShowScreeningRoom(true)
-    try {
-      const res = await fetch('/api/screen-story', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scenes: scenes.map((s) => ({ description: s.description, emotional_beat: s.emotional_beat })),
-          character_name: story.character_name,
-          character_job: story.character_job,
-          character_age: story.character_age,
-          emotional_tone: story.emotional_tone,
-        }),
-      })
-      const data = await res.json()
-      if (data.personas) {
-        setScreeningResult(data)
-        onScreeningComplete?.(data)
-      }
-    } catch (err) {
-      console.error('Screening failed:', err)
-    } finally {
-      setScreeningLoading(false)
     }
   }
 
@@ -244,15 +171,6 @@ export function StoryArcStep({
             {scenes.length} scene{scenes.length !== 1 ? 's' : ''} in {story.character_name}&apos;s
             transformation journey
           </p>
-          {story.heartbeat_arc && story.heartbeat_arc.scenes.length > 0 && (
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <Activity className="w-3 h-3 text-[var(--accent)]" />
-              <span className="text-xs text-[var(--accent)]">
-                Heartbeat arc active
-                {story.arc_template_used ? ` · ${story.arc_template_used}` : ''}
-              </span>
-            </div>
-          )}
         </div>
         <button
           onClick={handleGenerate}
@@ -302,28 +220,11 @@ export function StoryArcStep({
           {scenes.map((scene, index) => {
             const isEditing = editingIndex === index
 
-            const scanResult = scanResults.find((r) => r.slide_index === index)
-
             return (
               <div
                 key={scene.id}
                 className={`glass-card p-5 transition-all relative ${isEditing ? 'border-[var(--accent)]/30' : ''}`}
               >
-                {/* Human Score badge overlay */}
-                {scanResult && (
-                  <div
-                    className={`absolute top-2 right-2 z-10 inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border ${
-                      scanResult.human_score >= 80
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                        : scanResult.human_score >= 60
-                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                        : 'bg-red-500/20 text-red-400 border-red-500/30'
-                    }`}
-                  >
-                    {scanResult.human_score >= 80 ? '👤' : scanResult.human_score >= 60 ? '🤔' : '🤖'}{' '}
-                    {scanResult.human_score}
-                  </div>
-                )}
                 {isEditing ? (
                   /* Edit mode */
                   <div className="space-y-4">
@@ -452,114 +353,7 @@ export function StoryArcStep({
             <PlusCircle className="w-4 h-4" />
             Add Scene
           </button>
-
-          {/* Swipe Momentum Analyzer */}
-          <SwipeMomentumPanel
-            scenes={scenes}
-            storyId={story.id}
-            onScenesUpdate={onScenesUpdate}
-            initialResult={swipeMomentumResult}
-            onResultChange={(r) => {
-              setSwipeMomentumResult(r)
-              onSwipeAnalysisComplete?.(r)
-            }}
-          />
-
-          {/* Caption Power Word Heatmap */}
-          <CaptionHeatmapPanel
-            scenes={scenes}
-            onScenesUpdate={onScenesUpdate}
-          />
-
-          {/* Authenticity Scanner */}
-          <AuthenticityScanner
-            scenes={scenes}
-            onScenesUpdate={onScenesUpdate}
-            scanResults={scanResults}
-            onScanComplete={setScanResults}
-            isRealityGrounded={story.is_reality_grounded}
-          />
-
-          {/* Audience Screening Room trigger */}
-          <button
-            onClick={handleScreenStory}
-            disabled={screeningLoading}
-            className="w-full glass-card p-4 flex items-center justify-center gap-2 text-sm font-medium text-zinc-300 hover:text-white hover:border-[var(--accent)]/30 transition-all"
-          >
-            {screeningLoading ? (
-              <>
-                <div className="spinner w-4 h-4" />
-                <span>Chargement de la salle...</span>
-              </>
-            ) : (
-              <>
-                <Clapperboard className="w-4 h-4 text-[var(--accent)]" />
-                <span>Tester avec le public 🎬</span>
-                {screeningResult && (
-                  <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-[var(--accent)]/20 text-[var(--accent)] font-semibold">
-                    Score: {screeningResult.virality_score}
-                  </span>
-                )}
-              </>
-            )}
-          </button>
-
-          {/* Format DNA Adapter */}
-          <FormatAdapterPanel
-            story={story}
-            scenes={scenes}
-            onScenesUpdate={onScenesUpdate}
-          />
-
-          {/* Arc Overlay — shows heartbeat alignment after generation */}
-          {story.heartbeat_arc && story.heartbeat_arc.scenes.length > 0 && (
-            <ArcOverlay heartbeatArc={story.heartbeat_arc} scenes={scenes} />
-          )}
         </div>
-      )}
-
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Heartbeat
-        </button>
-        <div className="relative">
-          <button
-            onClick={onContinue}
-            disabled={scenes.length === 0}
-            className="btn-accent flex items-center gap-2"
-          >
-            {screeningResult && (
-              <span className="text-xs font-semibold opacity-80">
-                Score: {screeningResult.virality_score} →
-              </span>
-            )}
-            Continue to Images
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          {swipeMomentumResult && swipeMomentumResult.overall_score < 70 && (
-            <p className="absolute -bottom-5 right-0 text-[10px] text-amber-400 whitespace-nowrap">
-              ⚠ Low completion risk detected
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Audience Screening Room modal */}
-      {showScreeningRoom && (
-        <AudienceScreeningRoom
-          result={screeningResult}
-          scenes={scenes}
-          onScenesUpdate={onScenesUpdate}
-          onContinue={() => {
-            setShowScreeningRoom(false)
-            onContinue()
-          }}
-          onClose={() => setShowScreeningRoom(false)}
-          onRerun={handleScreenStory}
-          isLoading={screeningLoading}
-        />
       )}
     </div>
   )

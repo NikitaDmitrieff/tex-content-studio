@@ -104,8 +104,8 @@ export default async function Dashboard() {
               </div>
               <h1 className="text-3xl font-bold tracking-tight">Tex Content Studio</h1>
             </div>
-            <p className="text-zinc-400 text-sm ml-[3.25rem]">
-              TikTok carousel factory for Tex Fitness
+            <p className="text-zinc-400 text-sm ml-[3.25rem] max-w-lg">
+              Content distribution pipeline for Tex Fitness. Generate UGC-style carousel stories, AI images, post captions, and export ready-to-post TikTok content — all from one place.
             </p>
           </div>
           <NewStoryButton />

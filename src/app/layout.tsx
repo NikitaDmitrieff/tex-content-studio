@@ -8,8 +8,13 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Tex Content Studio',
-  description: 'TikTok carousel factory for Tex Fitness',
+  title: 'Tex Content Studio — Content Distribution Pipeline',
+  description: 'Automated content distribution pipeline for Tex Fitness. Generate UGC-style TikTok carousel stories with AI characters, images, captions, and hashtags — ready to post.',
+  openGraph: {
+    title: 'Tex Content Studio',
+    description: 'AI-powered content distribution pipeline. Generate scroll-stopping TikTok carousels from fictional character transformation stories.',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({

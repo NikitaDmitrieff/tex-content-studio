@@ -35,39 +35,49 @@ export async function POST(request: NextRequest) {
   if (!apiKey) {
     const fallbackScenes = [
       {
-        description: `I wake up at 4:30 AM like every other day. My body aches before the day's even started. There's a half-eaten bag of chips on the nightstand next to three empty energy drink cans. This is just... life now.`,
-        emotional_beat: 'Normal life — mundane routine',
-        visual_prompt: `Dimly lit bedroom, messy nightstand with junk food, ${character.physical_description}, waking up exhausted, shot on old phone camera, grainy, realistic, candid moment`,
+        description: `I was ${character.age} and couldn't tie my own shoes without holding my breath.`,
+        emotional_beat: 'Hook',
+        visual_prompt: `${character.physical_description}, struggling to bend over to tie shoes, living room floor, shot on old phone camera, grainy, realistic, unflattering angle, candid`,
       },
       {
-        description: `I catch my reflection in a window at work and I don't recognize the person staring back. A coworker says something about taking the stairs and it stings more than it should. I pretend I didn't hear it.`,
-        emotional_beat: 'Self-awareness — uncomfortable truth',
-        visual_prompt: `${character.physical_description} at work, catching reflection in window, looking disappointed, natural lighting, candid phone photo style, slightly out of focus`,
+        description: `4:30 AM. Monster Energy and a gas station burrito for breakfast. Been doing this for years. My back hurts before my shift even starts. This is just... whatever. It's fine.`,
+        emotional_beat: 'Mundane routine',
+        visual_prompt: `Dimly lit kitchen, energy drink cans and fast food wrappers, ${character.physical_description}, eating alone, early morning, shot on phone, harsh fluorescent lighting`,
       },
       {
-        description: `The breaking point comes out of nowhere. I can't do something simple that I should be able to do. The shame is overwhelming. I sit there alone afterward, staring at my hands, wondering how I let it get this bad.`,
-        emotional_beat: 'Breaking point — emotional low',
-        visual_prompt: `${character.physical_description} sitting alone, head down, dimly lit, emotional moment, raw phone photo quality, shallow depth of field, muted colors`,
+        description: `My daughter posted family photos from Easter. I wasn't in any of them. Not because I wasn't there. Because I asked her not to tag me.`,
+        emotional_beat: 'Self-awareness',
+        visual_prompt: `${character.physical_description} looking at phone screen, sad expression, sitting on couch alone, natural lighting, candid phone photo, slightly out of focus`,
       },
       {
-        description: `Late at night, doom-scrolling, I see this thing on my phone. Not the usual influencer garbage. Just... real people. People who look like me. I download it before I can talk myself out of it.`,
-        emotional_beat: 'Discovery — spark of hope',
-        visual_prompt: `${character.physical_description} in bed at night, phone screen glowing on face, scrolling, interested expression, dark room lit only by phone, phone photo aesthetic`,
+        description: `Couldn't keep up with my 6 year old at the park. Had to sit down on a bench and pretend I was "just resting." She looked back at me and said "it's okay grandpa." I'm her dad.`,
+        emotional_beat: 'Breaking point',
+        visual_prompt: `${character.physical_description} sitting alone on park bench, head down, child playing in background out of focus, golden hour, raw phone photo quality, muted colors`,
       },
       {
-        description: `Day one is humiliating. I can barely finish the beginner stuff. I'm breathing hard, sweating through my shirt after just 10 minutes. But I don't quit. I just sit there, hands on my knees, feeling... alive?`,
-        emotional_beat: 'Struggle — first attempt',
-        visual_prompt: `${character.physical_description} in living room doing basic exercise, red-faced, sweating, determined expression, messy apartment background, raw phone photo, slightly blurry from movement`,
+        description: `Downloaded this app at like 2am. Couldn't sleep. Figured I'd delete it in the morning. I didn't.`,
+        emotional_beat: 'Discovery',
+        visual_prompt: `${character.physical_description} in bed at night, phone screen glowing on face, dark room, only light from phone, shot on phone camera, realistic`,
       },
       {
-        description: `Weeks pass. Some days are terrible, some are okay. I start packing a lunch. Going to bed earlier. The scale barely moves, but my clothes fit different. I catch myself smiling at nothing.`,
-        emotional_beat: 'Progress — gradual change',
-        visual_prompt: `${character.physical_description} but looking slightly healthier, meal prepping in kitchen, small smile, natural daylight, phone photo quality, genuine candid moment, subtle difference in appearance`,
+        description: `First workout I did 4 minutes and thought I was gonna die. Four. Minutes. My shirt was soaked. I sat on the kitchen floor for 20 minutes after. But I opened it again the next day. Idk why.`,
+        emotional_beat: 'Early struggle',
+        visual_prompt: `${character.physical_description} sitting on kitchen floor, sweaty, exhausted, red-faced, water bottle nearby, messy apartment, raw phone photo, slightly blurry`,
       },
       {
-        description: `Three months in. I look in the mirror and see someone I'd forgotten existed. I'm not a fitness model. I'm still me. But the light in my eyes is back. I take a selfie and actually like what I see.`,
-        emotional_beat: 'Transformation — quiet triumph',
-        visual_prompt: `${character.physical_description} but noticeably transformed, standing in front of mirror, proud expression, taking mirror selfie, better posture, slightly better fitting clothes, warm lighting, phone selfie quality`,
+        description: `Week 3. Everything hurts but different. Like a good hurt? Packed my own lunch today for the first time in maybe 10 years. Turkey sandwich. Nothing crazy. Felt like something though.`,
+        emotional_beat: 'Small wins',
+        visual_prompt: `${character.physical_description} in kitchen making a simple lunch, small smile, natural daylight through window, phone photo quality, genuine candid moment`,
+      },
+      {
+        description: `Two months in. Scale barely moved tbh. But I can tie my shoes now. And I sleep through the night. My coworker said I "look different" and I pretended I didn't know what she meant.`,
+        emotional_beat: 'Quiet progress',
+        visual_prompt: `${character.physical_description} but slightly healthier posture, at work, subtle confidence, natural lighting, candid phone photo style`,
+      },
+      {
+        description: `Took a selfie yesterday. First one in years where I didn't delete it immediately. I'm not a fitness model. I'm still me. But I'm me again, if that makes sense.`,
+        emotional_beat: 'Transformation',
+        visual_prompt: `${character.physical_description} but noticeably transformed, taking mirror selfie, slight smile, better posture, warm lighting, phone selfie quality, genuine expression`,
       },
     ]
 
@@ -93,44 +103,43 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `Create a 6-8 scene TikTok carousel story for a fitness transformation.
+          content: `Write a 7-10 slide TikTok photo carousel. First person. The narrator IS the character below.
 
-The story is written in FIRST PERSON — the character is telling their own story directly to the viewer. Use "I", "me", "my" throughout. It should feel like a real person's confession, raw and honest.
-
-CHARACTER (narrator):
-Name: ${character.name}
-Age: ${character.age}
-Job: ${character.job}
+CHARACTER:
+${character.name}, ${character.age}, ${character.job}
 Backstory: ${character.backstory}
-Physical: ${character.physical_description}
+Look: ${character.physical_description}
 
-EMOTIONAL TONE: ${emotional_tone}
-${toneGuide}
+TONE: ${emotional_tone} — ${toneGuide}
 
-STORY STRUCTURE:
-1. "I" describe my normal, mundane life (the routine, the food, the exhaustion)
-2. A moment of uncomfortable self-awareness — seeing myself clearly for the first time
-3. The breaking point (something specific and emotional that breaks me)
-4. "I" find something on my phone late at night — just a thing that caught my eye. Don't name any app or brand. Just say "this thing" or "this app" or "something on my phone." It should feel like a random discovery, NOT a recommendation.
-5. The struggle of starting (it should be hard and humbling)
-6. Gradual progress with small wins — new habits, small changes
-7. The transformation — I'm not a fitness model, but I've clearly changed, physically and emotionally
+VOICE RULES — this is the most important part:
+- Write like a REAL person typing on their phone. Not a writer. Not AI.
+- Use fragments. Run-ons. Start sentences with "And" or "But". Leave thoughts hanging with "..."
+- Include hyper-specific details: brand names of junk food, exact times ("3:47 AM"), body parts that hurt, specific coworker moments, real-sounding places
+- BANNED PHRASES (these scream AI): "little did I know", "something shifted", "I found myself", "game-changer", "needless to say", "fast forward", "plot twist", "here's the thing", "journey", "that's when everything changed"
+- Keep it messy. Real people contradict themselves. They joke in dark moments. They downplay big things.
+- Use casual punctuation: "idk", "lol", "ngl", "tbh" sparingly — like a real person would
+- Some slides should be just 1 sentence. Others 2-3. Vary it.
 
-CRITICAL RULES:
-- Write EVERYTHING in first person ("I woke up...", "I couldn't believe...", "I started...")
-- NEVER mention any brand, app name, or product by name. The "discovery" scene should just reference "this thing on my phone" or "this app I found" — keep it completely generic
-- Every visual prompt must include the character's physical description for consistency
-- Visual prompts should describe "shot on old phone" style photography — grainy, candid, imperfect
-- Make it emotionally compelling enough to stop someone mid-scroll
-- Each scene description should be 2-3 sentences maximum, conversational tone
-- It should read like a real person's TikTok story, not a marketing piece
+STORY FLOW:
+1. My normal life. Make it feel heavy and specific. Not sad-movie sad — just... tired.
+2. The moment I actually see myself. A mirror, a photo, someone's comment. Something concrete.
+3. Breaking point. ONE specific moment that wrecked me. Not dramatic — quietly devastating.
+4. I find something on my phone. DO NOT name any app or brand. Say "this app" or "this thing" — like someone casually mentioning it. It's not the hero of the story, I am. One sentence max on this.
+5-6. Early days are brutal. Show specific failures. Specific small wins. The boring middle that nobody talks about.
+7-8. Things start shifting. Not overnight. Slowly. Clothes fit different. I sleep better. People notice but I pretend I don't notice them noticing.
+9-10. Where I am now. Not a transformation ad. Just... different. Better. Still me.
+
+SLIDE 1 MUST be a scroll-stopping hook. Something like "I was 54 and couldn't tie my own shoes" or "Nobody tells you what rock bottom smells like." Make it visceral and specific.
+
+THE APP MENTION: Maximum ONE slide can reference finding an app. It should feel throwaway — "downloaded this app at like 2am, honestly didn't think I'd open it again." The story is about the PERSON, not the product. The app is just a tool they happened to find.
 
 Respond ONLY with a JSON array (no markdown, no code fences):
 [
   {
-    "description": "First-person scene narrative text",
-    "emotional_beat": "Short label for the emotional beat",
-    "visual_prompt": "Detailed photography-style prompt for AI image generation"
+    "description": "Slide text — first person, raw, real",
+    "emotional_beat": "2-4 word beat label",
+    "visual_prompt": "Photography prompt for AI image generation — must include character physical description"
   }
 ]`,
         },

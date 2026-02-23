@@ -20,6 +20,7 @@ import { AudienceScreeningRoom } from './AudienceScreeningRoom'
 import { SwipeMomentumPanel } from './SwipeMomentumPanel'
 import { FormatAdapterPanel } from './FormatAdapterPanel'
 import { ArcOverlay } from './ArcOverlay'
+import { CaptionHeatmapPanel } from './CaptionHeatmapPanel'
 
 export function StoryArcStep({
   story,
@@ -462,6 +463,12 @@ export function StoryArcStep({
               setSwipeMomentumResult(r)
               onSwipeAnalysisComplete?.(r)
             }}
+          />
+
+          {/* Caption Power Word Heatmap */}
+          <CaptionHeatmapPanel
+            scenes={scenes}
+            onScenesUpdate={onScenesUpdate}
           />
 
           {/* Authenticity Scanner */}

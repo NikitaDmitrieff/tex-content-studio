@@ -276,3 +276,51 @@ textarea.input-dark {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* Caption Power Word Heatmap */
+.word-power-high {
+  background-color: #22c55e;
+  color: #14532d;
+  border-radius: 0.25rem;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.word-power-mid {
+  background-color: #f59e0b;
+  color: #451a03;
+  border-radius: 0.25rem;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.word-power-low {
+  background-color: #ef4444;
+  color: white;
+  border-radius: 0.25rem;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+@keyframes wordFlash {
+  0%   { background-color: #6d5aff; color: white; }
+  100% { background-color: inherit; color: inherit; }
+}
+
+.word-flash {
+  animation: wordFlash 0.6s ease-out forwards;
+}
+
+@keyframes wordPillPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.7; }
+}
+
+.word-pill-skeleton {
+  display: inline-block;
+  height: 1em;
+  background: rgba(255,255,255,0.1);
+  border-radius: 0.25rem;
+  animation: wordPillPulse 1.2s ease-in-out infinite;
+  vertical-align: middle;
+}

@@ -409,3 +409,23 @@ export type IntelligenceReport = {
   totalStoriesAnalyzed: number
   lastUpdated: string
 }
+
+// ── Caption Power Word Heatmap ────────────────────────────────────────────────
+
+export type WordPowerTier = 'high' | 'mid' | 'low'
+
+export type WordScore = {
+  word: string
+  score: number        // 1–10
+  reason_fr: string
+  alternatives: string[]
+}
+
+export type SceneWordAnalysis = {
+  sceneId: string
+  words: WordScore[]
+}
+
+export type CaptionWordAnalysisResult = {
+  scenes: SceneWordAnalysis[]
+}

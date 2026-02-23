@@ -17,6 +17,7 @@ import {
 import { AuthenticityScanner } from './AuthenticityScanner'
 import { AudienceScreeningRoom } from './AudienceScreeningRoom'
 import { SwipeMomentumPanel } from './SwipeMomentumPanel'
+import { FormatAdapterPanel } from './FormatAdapterPanel'
 
 export function StoryArcStep({
   story,
@@ -482,6 +483,13 @@ export function StoryArcStep({
               </>
             )}
           </button>
+
+          {/* Format DNA Adapter */}
+          <FormatAdapterPanel
+            story={story}
+            scenes={scenes}
+            onScenesUpdate={onScenesUpdate}
+          />
         </div>
       )}
 

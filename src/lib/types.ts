@@ -267,6 +267,32 @@ export const STATUS_CONFIG: Record<StoryStatus, { label: string; color: string }
   complete: { label: 'Complete', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
 }
 
+// ── TikTok Format DNA Adapter ─────────────────────────────────────────────────
+
+export type ContentFormatId =
+  | 'pov_coach'
+  | '30_jours_defi'
+  | 'personne_ne_ma_dit'
+  | 'essaye_30_jours'
+  | 'avant_que_je_sache'
+  | 'coach_dit_toujours'
+  | 'commentaires_pousse'
+  | 'journee_dans_sa_vie'
+
+export type ContentFormat = {
+  id: ContentFormatId
+  name: string
+  tagline: string
+  best_for: string
+  engagement_modifier: string
+}
+
+export type FormatAdaptResult = {
+  adapted_scenes: Scene[]
+  format_fit_score: number
+  format_note: string
+}
+
 // ── Swipe Momentum Analyzer ──────────────────────────────────────────────────
 
 export type MomentumType = 'strong' | 'building' | 'flat' | 'drop'

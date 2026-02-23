@@ -103,11 +103,12 @@ npm run lint       # ESLint
 
 This app creates TikTok photo carousels for Tex Fitness (a React Native fitness coaching app). The strategy:
 
-1. **Characters are fictional but hyper-realistic** — everyday people (truckers, lunch ladies, postal workers), age 30-65, never exercised before
-2. **Stories follow emotional arcs** — 6-8 scenes from mundane life to breaking point to transformation via Tex Fitness
-3. **Images look like candid phone photos** — NOT polished fitness content. Grainy, imperfect, documentary-style
-4. **Tex Fitness appears organically** — the character discovers the app naturally, like product placement in a movie
-5. **Emotional tones drive engagement** — comeback, revenge body, quiet transformation, rock bottom, against all odds
+1. **First person narration** — ALL stories are written as "I woke up...", "I couldn't believe..." — the character speaks directly to the viewer like a real TikTok confession
+2. **Characters are fictional but hyper-realistic** — everyday people (truckers, lunch ladies, postal workers), age 30-65, never exercised before
+3. **Stories follow emotional arcs** — 6-8 scenes from mundane life to breaking point to transformation
+4. **NO brand names in stories** — the "discovery" scene references "this thing on my phone" or "this app I found" — NEVER name Tex Fitness or any product. The CTA is just "Link in bio."
+5. **Images look like candid phone photos** — NOT polished fitness content. Grainy, imperfect, documentary-style
+6. **Emotional tones drive engagement** — comeback, revenge body, quiet transformation, rock bottom, against all odds
 
 ## Gotchas
 

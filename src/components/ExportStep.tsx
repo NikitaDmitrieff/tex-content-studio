@@ -23,6 +23,7 @@ import { VoiceoverScriptPanel } from './VoiceoverScriptPanel'
 import { RealityAnchorCard } from './RealityAnchorCard'
 import { MultiPlatformAmplifier } from './MultiPlatformAmplifier'
 import { HookLab } from './HookLab'
+import { CommentStormEngine } from './CommentStormEngine'
 import { RealityAnchors, ScreeningResult } from '@/lib/types'
 
 type ActiveTab = 'export' | 'hooklab' | 'engagement' | 'voiceover' | 'reality' | 'amplify'
@@ -69,6 +70,7 @@ export function ExportStep({
   const [copied, setCopied] = useState<string | null>(null)
   const [caption, setCaption] = useState<PostCaption | null>(null)
   const [generatingCaption, setGeneratingCaption] = useState(false)
+  const [showCommentStorm, setShowCommentStorm] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const scenesWithImages = scenes.filter((s) => s.image_url)
@@ -183,6 +185,10 @@ export function ExportStep({
 
   return (
     <div className="space-y-6">
+      {/* Comment Storm Engine overlay */}
+      {showCommentStorm && (
+        <CommentStormEngine story={story} onClose={() => setShowCommentStorm(false)} />
+      )}
       {/* Section header */}
       <div className="flex items-center justify-between">
         <div>
@@ -698,14 +704,28 @@ export function ExportStep({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <button onClick={onBack} className="btn-secondary flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
           Back to Images
         </button>
-        <div className="text-sm text-zinc-500">
-          {scenesWithImages.length} slide{scenesWithImages.length !== 1 ? 's' : ''} ready for
-          export
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-zinc-500">
+            {scenesWithImages.length} slide{scenesWithImages.length !== 1 ? 's' : ''} ready for
+            export
+          </div>
+          <button
+            onClick={() => setShowCommentStorm(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #7c3aed, #8B5CF6)',
+              color: 'white',
+              boxShadow: '0 0 20px rgba(139,92,246,0.3)',
+            }}
+          >
+            <MessageSquare className="w-4 h-4" />
+            Créer la Suite
+          </button>
         </div>
       </div>
       </>)}

@@ -22,6 +22,10 @@ export async function POST(request: NextRequest) {
       turning_point_scene_index?: number | null
       proof_scene_index?: number | null
     }
+    heartbeat_arc?: {
+      scenes: { position: number; intensity: number; label?: string }[]
+    }
+    arc_template_used?: string
   }
 
   try {
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { character, emotional_tone, story_id, character_id, previous_episodes_summary, reality_anchors } = body
+  const { character, emotional_tone, story_id, character_id, previous_episodes_summary, reality_anchors, heartbeat_arc, arc_template_used } = body
 
   if (!character || !emotional_tone) {
     return NextResponse.json(
@@ -110,6 +114,27 @@ export async function POST(request: NextRequest) {
         ? `\n\nREALITY ANCHORS — These are REAL facts from the creator's actual journey. They MUST be woven into specific scenes:\n${realFacts.map((f, i) => `${i + 1}. ${f}`).join('\n')}\n\nREQUIRED SCENE CONSTRAINTS:\n- One scene MUST use the turning point moment exactly as described above — use the exact words and specific details\n- One scene MUST reference the specific struggles listed — make them visceral and concrete\n- One scene (toward the end) MUST include the specific wins and proof — use the exact numbers and achievements\n`
         : ''
 
+    const HEARTBEAT_SCENE_LABELS = [
+      'Opening', 'Setup', 'First Crack', 'Collapse',
+      'Turning Point', 'Rising', 'Climax', 'Resolution',
+    ]
+
+    const heartbeatConstraint = heartbeat_arc && heartbeat_arc.scenes.length > 0
+      ? `\n\nHEARTBEAT ARC — MANDATORY EMOTIONAL INTENSITY MAP:
+You MUST follow this exact emotional intensity curve. Each scene maps to a specific intensity (1=absolute despair, 10=pure triumph). DO NOT deviate from this arc.
+${heartbeat_arc.scenes.map((s) => {
+  const labelNote = s.label ? ` — "${s.label}"` : ''
+  const sceneLabel = HEARTBEAT_SCENE_LABELS[s.position - 1] ?? `Scene ${s.position}`
+  return `Scene ${s.position} (${sceneLabel}): intensity ${s.intensity}/10${labelNote}`
+}).join('\n')}
+
+ENFORCEMENT RULES:
+${heartbeat_arc.scenes.filter(s => s.intensity <= 2).map(s => `- Scene ${s.position} MUST be absolute rock bottom (${s.intensity}/10). The character is at their lowest point.`).join('\n')}
+${heartbeat_arc.scenes.filter(s => s.intensity >= 9).map(s => `- Scene ${s.position} MUST feel triumphant and victorious (${s.intensity}/10). The character has broken through.`).join('\n')}
+${arc_template_used ? `Arc template: "${arc_template_used}" — honor the shape of this arc precisely.` : ''}
+`
+      : ''
+
     const isSequel = Boolean(previous_episodes_summary)
     const sequelContext = isSequel
       ? `\n\nPREVIOUS EPISODES CONTEXT (this is a sequel — reference past events naturally):\n${previous_episodes_summary}\n\nSEQUEL RULES:\n- This is a CONTINUATION, not a reset. Don't start from scratch.\n- Reference specific things from the past episodes naturally in the narration (e.g. "since her breakthrough three months ago", "that day at the park still gets me")\n- The character has already started changing. Show where they are NOW and what new challenge or milestone this chapter is about.\n- Don't repeat the "I found an app" moment — that already happened.\n`
@@ -138,7 +163,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `Write a 7-10 slide TikTok photo carousel. First person. The narrator IS the character below.${sequelContext}${realityContext}
+          content: `Write a 7-10 slide TikTok photo carousel. First person. The narrator IS the character below.${sequelContext}${realityContext}${heartbeatConstraint}
 
 CHARACTER:
 ${character.name}, ${character.age}, ${character.job}
@@ -212,6 +237,12 @@ Respond ONLY with a JSON array (no markdown, no code fences):
       if (reality_anchors) {
         updatePayload.reality_anchors = reality_anchors
         updatePayload.is_reality_grounded = true
+      }
+      if (heartbeat_arc) {
+        updatePayload.heartbeat_arc = heartbeat_arc
+      }
+      if (arc_template_used) {
+        updatePayload.arc_template_used = arc_template_used
       }
 
       await supabase

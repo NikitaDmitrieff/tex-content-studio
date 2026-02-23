@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Story, Scene, Character, ScreeningResult, SwipeMomentumResult } from '@/lib/types'
 import { StepIndicator } from './StepIndicator'
 import { CharacterStep } from './CharacterStep'
+import { HeartbeatStep } from './HeartbeatStep'
 import { StoryArcStep } from './StoryArcStep'
 import { ImageGenerationStep } from './ImageGenerationStep'
 import { ExportStep } from './ExportStep'
@@ -12,9 +13,10 @@ import { ArrowLeft, Eye } from 'lucide-react'
 
 const STEPS = [
   { number: 1, label: 'Character' },
-  { number: 2, label: 'Story Arc' },
-  { number: 3, label: 'Images' },
-  { number: 4, label: 'Export' },
+  { number: 2, label: 'Heartbeat' },
+  { number: 3, label: 'Story Arc' },
+  { number: 4, label: 'Images' },
+  { number: 5, label: 'Export' },
 ]
 
 export function StoryWorkspace({
@@ -55,8 +57,8 @@ export function StoryWorkspace({
           {backLabel}
         </Link>
 
-        {/* Preview button — shown once story arc is generated (step 2+) */}
-        {step >= 2 && scenes.length > 0 && !story.id.startsWith('demo-') && !story.id.startsWith('new-') && (
+        {/* Preview button — shown once story arc is generated (step 3+) */}
+        {step >= 3 && scenes.length > 0 && !story.id.startsWith('demo-') && !story.id.startsWith('new-') && (
           <Link
             href={`/stories/${story.id}/preview`}
             className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-xl transition-colors"
@@ -88,33 +90,41 @@ export function StoryWorkspace({
           />
         )}
         {step === 2 && (
+          <HeartbeatStep
+            story={story}
+            onUpdate={handleStoryUpdate}
+            onBack={() => setStep(1)}
+            onContinue={() => setStep(3)}
+          />
+        )}
+        {step === 3 && (
           <StoryArcStep
             story={story}
             scenes={scenes}
             onScenesUpdate={handleScenesUpdate}
-            onBack={() => setStep(1)}
-            onContinue={() => setStep(3)}
+            onBack={() => setStep(2)}
+            onContinue={() => setStep(4)}
             onScreeningComplete={setScreeningResult}
             onSwipeAnalysisComplete={setSwipeMomentumResult}
           />
         )}
-        {step === 3 && (
+        {step === 4 && (
           <ImageGenerationStep
             story={story}
             scenes={scenes}
             visualDna={lockedCharacter?.visual_dna}
             onScenesUpdate={handleScenesUpdate}
-            onBack={() => setStep(2)}
-            onContinue={() => setStep(4)}
+            onBack={() => setStep(3)}
+            onContinue={() => setStep(5)}
             swipeScore={swipeMomentumResult?.overall_score ?? null}
           />
         )}
-        {step === 4 && (
+        {step === 5 && (
           <ExportStep
             story={story}
             scenes={scenes}
             onScenesUpdate={handleScenesUpdate}
-            onBack={() => setStep(3)}
+            onBack={() => setStep(4)}
             screeningResult={screeningResult}
           />
         )}

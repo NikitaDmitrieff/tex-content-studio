@@ -13,11 +13,13 @@ import {
   X,
   Check,
   Clapperboard,
+  Activity,
 } from 'lucide-react'
 import { AuthenticityScanner } from './AuthenticityScanner'
 import { AudienceScreeningRoom } from './AudienceScreeningRoom'
 import { SwipeMomentumPanel } from './SwipeMomentumPanel'
 import { FormatAdapterPanel } from './FormatAdapterPanel'
+import { ArcOverlay } from './ArcOverlay'
 
 export function StoryArcStep({
   story,
@@ -80,6 +82,8 @@ export function StoryArcStep({
           character_id: story.character_id ?? undefined,
           previous_episodes_summary: previousEpisodesSummary,
           reality_anchors: story.reality_anchors ?? undefined,
+          heartbeat_arc: story.heartbeat_arc ?? undefined,
+          arc_template_used: story.arc_template_used ?? undefined,
         }),
       })
       const data = await res.json()
@@ -239,6 +243,15 @@ export function StoryArcStep({
             {scenes.length} scene{scenes.length !== 1 ? 's' : ''} in {story.character_name}&apos;s
             transformation journey
           </p>
+          {story.heartbeat_arc && story.heartbeat_arc.scenes.length > 0 && (
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <Activity className="w-3 h-3 text-[var(--accent)]" />
+              <span className="text-xs text-[var(--accent)]">
+                Heartbeat arc active
+                {story.arc_template_used ? ` · ${story.arc_template_used}` : ''}
+              </span>
+            </div>
+          )}
         </div>
         <button
           onClick={handleGenerate}
@@ -490,6 +503,11 @@ export function StoryArcStep({
             scenes={scenes}
             onScenesUpdate={onScenesUpdate}
           />
+
+          {/* Arc Overlay — shows heartbeat alignment after generation */}
+          {story.heartbeat_arc && story.heartbeat_arc.scenes.length > 0 && (
+            <ArcOverlay heartbeatArc={story.heartbeat_arc} scenes={scenes} />
+          )}
         </div>
       )}
 
@@ -497,7 +515,7 @@ export function StoryArcStep({
       <div className="flex justify-between">
         <button onClick={onBack} className="btn-secondary flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
-          Back to Character
+          Back to Heartbeat
         </button>
         <div className="relative">
           <button

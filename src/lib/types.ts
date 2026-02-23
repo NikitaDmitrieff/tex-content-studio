@@ -268,6 +268,27 @@ export const STATUS_CONFIG: Record<StoryStatus, { label: string; color: string }
   complete: { label: 'Complete', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
 }
 
+// ── Series Bible ─────────────────────────────────────────────────────────────
+
+export type SeriesBibleEpisode = {
+  episode_number: number
+  title: string
+  premise: string
+  emotional_tone: EmotionalTone
+  turning_point: string
+  cliffhanger_hook: string
+  audience_target: string
+  season_timing_suggestion?: string
+}
+
+export type SeriesBible = {
+  id: string
+  character_id: string
+  episodes: SeriesBibleEpisode[]
+  created_at: string
+  linked_story_ids?: (string | null)[]
+}
+
 // ── TikTok Format DNA Adapter ─────────────────────────────────────────────────
 
 export type ContentFormatId =

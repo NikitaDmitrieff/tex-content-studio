@@ -1,33 +1,18 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Story, Scene, Character, ScreeningResult, SwipeMomentumResult } from '@/lib/types'
-import { StepIndicator } from './StepIndicator'
+import { Story, Scene, Character, ScreeningResult, SwipeMomentumResult, AudioBrief } from '@/lib/types'
 import { CharacterStep } from './CharacterStep'
-import { HeartbeatStep } from './HeartbeatStep'
 import { StoryArcStep } from './StoryArcStep'
 import { ImageGenerationStep } from './ImageGenerationStep'
 import { ExportStep } from './ExportStep'
+import { ArcOverlay } from './ArcOverlay'
+import { ProToolsDrawer } from './ProToolsDrawer'
 import Link from 'next/link'
-import { ArrowLeft, Eye } from 'lucide-react'
+import { ArrowLeft, Eye, Sparkles } from 'lucide-react'
+import { buildArcScenes } from './ArcTemplateGrid'
 
-const STEPS = [
-  { number: 1, label: 'Character' },
-  { number: 2, label: 'Heartbeat' },
-  { number: 3, label: 'Story Arc' },
-  { number: 4, label: 'Images' },
-  { number: 5, label: 'Export' },
-]
-
-function inferInitialStep(story: Story, scenes: Scene[]): number {
-  if (story.status === 'complete') return 5
-  const hasImages = scenes.some((s) => s.image_url)
-  if (hasImages) return 5
-  if (story.status === 'images_generating') return 4
-  if (scenes.length > 0) return 3
-  if (story.heartbeat_arc) return 3
-  return 1
-}
+const DEFAULT_HEARTBEAT_INTENSITIES = [5, 4, 3, 1, 3, 6, 8, 9]
 
 const SAVE_DEBOUNCE_MS = 1500
 
@@ -40,26 +25,24 @@ export function StoryWorkspace({
   initialScenes: Scene[]
   lockedCharacter?: Character | null
 }) {
-  const [step, setStep] = useState(() => inferInitialStep(initialStory, initialScenes))
   const [story, setStory] = useState<Story>(initialStory)
   const [scenes, setScenes] = useState<Scene[]>(initialScenes)
   const [screeningResult, setScreeningResult] = useState<ScreeningResult | null>(null)
   const [swipeMomentumResult, setSwipeMomentumResult] = useState<SwipeMomentumResult | null>(null)
+  const [audioBrief, setAudioBrief] = useState<AudioBrief | null>(null)
+  const [generatingStory, setGeneratingStory] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
-  // Auto-save: debounce story changes to Supabase
+  // Auto-save logic (preserved from original)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastSavedRef = useRef<string>(JSON.stringify(initialStory))
   const storyRef = useRef(story)
   storyRef.current = story
 
   const saveStory = useCallback(async (storyToSave: Story) => {
-    // Don't save demo/temp stories
     if (storyToSave.id.startsWith('demo-') || storyToSave.id.startsWith('new-')) return
-
     const serialized = JSON.stringify(storyToSave)
     if (serialized === lastSavedRef.current) return
-
     setSaveStatus('saving')
     try {
       const res = await fetch(`/api/stories/${storyToSave.id}/save`, {
@@ -99,7 +82,6 @@ export function StoryWorkspace({
     }
   }, [story, saveStory])
 
-  // Save immediately on page unload
   useEffect(() => {
     function handleBeforeUnload() {
       const s = storyRef.current
@@ -136,13 +118,97 @@ export function StoryWorkspace({
     setScenes(newScenes)
   }
 
+  // Generate story — applies default heartbeat if none set
+  async function handleGenerateStory() {
+    setGeneratingStory(true)
+
+    // Apply default heartbeat arc if user hasn't customized one via Pro Tools
+    let heartbeatArc = story.heartbeat_arc
+    let arcTemplateUsed = story.arc_template_used
+    if (!heartbeatArc || heartbeatArc.scenes.length === 0) {
+      heartbeatArc = { scenes: buildArcScenes(DEFAULT_HEARTBEAT_INTENSITIES) }
+      arcTemplateUsed = 'V-Shape Comeback'
+      handleStoryUpdate({ heartbeat_arc: heartbeatArc, arc_template_used: arcTemplateUsed })
+    }
+
+    try {
+      let previousEpisodesSummary: string | undefined
+      if (story.character_id) {
+        try {
+          const prevRes = await fetch(
+            `/api/character-episodes?character_id=${story.character_id}&exclude_story_id=${story.id}`
+          )
+          if (prevRes.ok) {
+            const prevData = await prevRes.json()
+            previousEpisodesSummary = prevData.summary
+          }
+        } catch {
+          // optional
+        }
+      }
+
+      const res = await fetch('/api/generate-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          character: {
+            name: story.character_name,
+            age: story.character_age,
+            job: story.character_job,
+            backstory: story.character_backstory,
+            physical_description: story.character_physical,
+          },
+          emotional_tone: story.emotional_tone,
+          story_id: story.id,
+          character_id: story.character_id ?? undefined,
+          previous_episodes_summary: previousEpisodesSummary,
+          reality_anchors: story.reality_anchors ?? undefined,
+          heartbeat_arc: heartbeatArc ?? undefined,
+          arc_template_used: arcTemplateUsed ?? undefined,
+        }),
+      })
+      const data = await res.json()
+
+      if (data.scenes && Array.isArray(data.scenes)) {
+        const newScenes: Scene[] = data.scenes.map(
+          (s: { description: string; emotional_beat: string; visual_prompt: string }, i: number) => ({
+            id: `scene-${Date.now()}-${i}`,
+            story_id: story.id,
+            order_index: i,
+            description: s.description,
+            emotional_beat: s.emotional_beat,
+            visual_prompt: s.visual_prompt,
+            image_url: null,
+            caption: null,
+            created_at: new Date().toISOString(),
+          })
+        )
+        setScenes(newScenes)
+      }
+    } catch (err) {
+      console.error('Failed to generate scenes:', err)
+    } finally {
+      setGeneratingStory(false)
+    }
+  }
+
+  const canGenerate =
+    story.character_name &&
+    story.character_age &&
+    story.character_job &&
+    story.character_backstory &&
+    story.character_physical &&
+    story.emotional_tone
+
+  const hasScenes = scenes.length > 0
+  const hasImages = scenes.some((s) => s.image_url)
   const backHref = lockedCharacter ? `/characters/${lockedCharacter.id}` : '/'
   const backLabel = lockedCharacter ? `Back to ${lockedCharacter.name}` : 'Back to dashboard'
 
   return (
-    <div className="fade-in">
-      {/* Back navigation */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="fade-in space-y-8">
+      {/* Top bar */}
+      <div className="flex items-center justify-between">
         <Link
           href={backHref}
           className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
@@ -152,7 +218,6 @@ export function StoryWorkspace({
         </Link>
 
         <div className="flex items-center gap-3">
-          {/* Save status indicator */}
           {saveStatus !== 'idle' && (
             <span
               className={`text-xs transition-opacity ${
@@ -169,8 +234,7 @@ export function StoryWorkspace({
             </span>
           )}
 
-          {/* Preview button — shown once story arc is generated (step 3+) */}
-          {step >= 3 && scenes.length > 0 && !story.id.startsWith('demo-') && !story.id.startsWith('new-') && (
+          {hasScenes && !story.id.startsWith('demo-') && !story.id.startsWith('new-') && (
             <Link
               href={`/stories/${story.id}/preview`}
               className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-xl transition-colors"
@@ -187,61 +251,87 @@ export function StoryWorkspace({
         </div>
       </div>
 
-      {/* Step indicator */}
-      <div className="mb-8">
-        <StepIndicator steps={STEPS} currentStep={step} />
-      </div>
+      {/* ① CHARACTER */}
+      <CharacterStep
+        story={story}
+        onUpdate={handleStoryUpdate}
+        lockedCharacter={lockedCharacter}
+      />
 
-      {/* Step content */}
-      <div className="fade-in" key={step}>
-        {step === 1 && (
-          <CharacterStep
-            story={story}
-            onUpdate={handleStoryUpdate}
-            onContinue={() => setStep(2)}
-            lockedCharacter={lockedCharacter}
-          />
-        )}
-        {step === 2 && (
-          <HeartbeatStep
-            story={story}
-            onUpdate={handleStoryUpdate}
-            onBack={() => setStep(1)}
-            onContinue={() => setStep(3)}
-          />
-        )}
-        {step === 3 && (
+      {/* Generate Story button */}
+      {canGenerate && (
+        <div className="flex justify-center">
+          <button
+            onClick={handleGenerateStory}
+            disabled={generatingStory}
+            className="btn-accent flex items-center gap-2 px-6 py-3 text-base"
+          >
+            {generatingStory ? (
+              <>
+                <div className="spinner" />
+                <span>Generating Story...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                <span>{hasScenes ? 'Regenerate Story' : 'Generate Story'}</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* ② SCENES */}
+      {hasScenes && (
+        <>
           <StoryArcStep
             story={story}
             scenes={scenes}
             onScenesUpdate={handleScenesUpdate}
-            onBack={() => setStep(2)}
-            onContinue={() => setStep(4)}
-            onScreeningComplete={setScreeningResult}
-            onSwipeAnalysisComplete={setSwipeMomentumResult}
           />
-        )}
-        {step === 4 && (
-          <ImageGenerationStep
-            story={story}
-            scenes={scenes}
-            visualDna={lockedCharacter?.visual_dna}
-            onScenesUpdate={handleScenesUpdate}
-            onBack={() => setStep(3)}
-            onContinue={() => setStep(5)}
-            swipeScore={swipeMomentumResult?.overall_score ?? null}
-          />
-        )}
-        {step === 5 && (
-          <ExportStep
-            story={story}
-            scenes={scenes}
-            onScenesUpdate={handleScenesUpdate}
-            onBack={() => setStep(4)}
-            screeningResult={screeningResult}
-          />
-        )}
-      </div>
+
+          {/* Arc Overlay — shows heartbeat alignment */}
+          {story.heartbeat_arc && story.heartbeat_arc.scenes.length > 0 && (
+            <ArcOverlay heartbeatArc={story.heartbeat_arc} scenes={scenes} />
+          )}
+        </>
+      )}
+
+      {/* ③ IMAGES */}
+      {hasScenes && (
+        <ImageGenerationStep
+          story={story}
+          scenes={scenes}
+          visualDna={lockedCharacter?.visual_dna}
+          onScenesUpdate={handleScenesUpdate}
+          swipeScore={swipeMomentumResult?.overall_score ?? null}
+        />
+      )}
+
+      {/* ④ EXPORT */}
+      {hasImages && (
+        <ExportStep
+          story={story}
+          scenes={scenes}
+          onScenesUpdate={handleScenesUpdate}
+          audioBrief={audioBrief}
+        />
+      )}
+
+      {/* Pro Tools Drawer */}
+      {hasScenes && (
+        <ProToolsDrawer
+          story={story}
+          scenes={scenes}
+          onStoryUpdate={handleStoryUpdate}
+          onScenesUpdate={handleScenesUpdate}
+          screeningResult={screeningResult}
+          onScreeningComplete={setScreeningResult}
+          swipeMomentumResult={swipeMomentumResult}
+          onSwipeAnalysisComplete={setSwipeMomentumResult}
+          onAudioBriefGenerated={setAudioBrief}
+        />
+      )}
     </div>
   )
 }

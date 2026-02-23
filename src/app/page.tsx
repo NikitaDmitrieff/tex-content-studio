@@ -218,9 +218,10 @@ export default async function Dashboard() {
 
           {stories.map((story) => {
             const statusCfg = STATUS_CONFIG[story.status]
+            const toneEmoji = { comeback: '\u{1F525}', revenge: '\u{1F4AA}', quiet_transformation: '\u{1F305}', rock_bottom: '\u2B07\uFE0F', against_all_odds: '\u{1F3C6}' }[story.emotional_tone] || ''
             return (
-              <div key={story.id} className="glass-card glass-card-interactive p-5 group relative">
-                {/* Main link overlay — covers card but sits behind character chip */}
+              <div key={story.id} className="glass-card glass-card-interactive group relative overflow-hidden">
+                {/* Main link overlay */}
                 <Link
                   href={`/story/${story.id}`}
                   className="absolute inset-0 rounded-2xl z-0"
@@ -228,51 +229,64 @@ export default async function Dashboard() {
                 />
 
                 {/* Thumbnail */}
-                <div className="aspect-video rounded-lg bg-white/[0.02] border border-white/[0.05] mb-4 overflow-hidden flex items-center justify-center relative z-[1] pointer-events-none">
+                <div className="aspect-[4/3] bg-white/[0.02] overflow-hidden flex items-center justify-center relative z-[1] pointer-events-none">
                   {story.first_image ? (
-                    <img
-                      src={story.first_image}
-                      alt={story.character_name}
-                      className="w-full h-full object-cover"
-                    />
+                    <>
+                      <img
+                        src={story.first_image}
+                        alt={story.character_name}
+                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-transparent to-transparent" />
+                    </>
                   ) : (
-                    <Film className="w-8 h-8 text-zinc-700" />
+                    <div className="flex flex-col items-center gap-2">
+                      <Film className="w-8 h-8 text-zinc-700" />
+                      <span className="text-[10px] text-zinc-700 font-medium uppercase tracking-wider">No images</span>
+                    </div>
                   )}
+
+                  {/* Status pill — top right of thumbnail */}
+                  <div className="absolute top-3 right-3">
+                    <span className={`status-badge ${statusCfg.color} text-[10px] px-2 py-0.5`}>
+                      {statusCfg.label}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Info */}
-                <div className="flex items-start justify-between mb-2 relative z-[1] pointer-events-none">
-                  <h3 className="font-semibold text-white group-hover:text-[var(--accent)] transition-colors">
-                    {story.character_name}
-                  </h3>
-                  <span className={`status-badge ${statusCfg.color}`}>
-                    {statusCfg.label}
-                  </span>
-                </div>
-                <p className="text-sm text-zinc-400 mb-3 relative z-[1] pointer-events-none">
-                  {story.character_age}yo {story.character_job}
-                </p>
-                <div className="flex items-center gap-4 text-xs text-zinc-500 flex-wrap relative z-[1]">
-                  <span className="pointer-events-none">{story.scene_count} scene{story.scene_count !== 1 ? 's' : ''}</span>
-                  <span className="pointer-events-none">{story.emotional_tone.replace(/_/g, ' ')}</span>
-                  {story.scene_count > 0 && !story.id.startsWith('demo-') && (
-                    <Link
-                      href={`/stories/${story.id}/preview`}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-zinc-400 hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition-colors z-[2] relative"
-                    >
-                      <Eye className="w-2.5 h-2.5" />
-                      Quick Preview
-                    </Link>
-                  )}
-                  {story.character_id && story.character_name_for_link && (
-                    <Link
-                      href={`/characters/${story.character_id}`}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent-hover)] hover:bg-[var(--accent)]/20 transition-colors z-[2] relative"
-                    >
-                      <Users className="w-2.5 h-2.5" />
-                      {story.character_name_for_link}
-                    </Link>
-                  )}
+                <div className="p-4 relative z-[1] pointer-events-none">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-white group-hover:text-[var(--accent)] transition-colors text-[15px]">
+                      {story.character_name}
+                    </h3>
+                    <span className="text-xs">{toneEmoji}</span>
+                  </div>
+                  <p className="text-sm text-zinc-500 mb-3">
+                    {story.character_age}yo {story.character_job}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-zinc-600 flex-wrap">
+                    <span className="pointer-events-none">{story.scene_count} slide{story.scene_count !== 1 ? 's' : ''}</span>
+                    <span className="pointer-events-none capitalize">{story.emotional_tone.replace(/_/g, ' ')}</span>
+                    {story.scene_count > 0 && !story.id.startsWith('demo-') && (
+                      <Link
+                        href={`/stories/${story.id}/preview`}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-zinc-500 hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition-colors z-[2] relative pointer-events-auto"
+                      >
+                        <Eye className="w-2.5 h-2.5" />
+                        Preview
+                      </Link>
+                    )}
+                    {story.character_id && story.character_name_for_link && (
+                      <Link
+                        href={`/characters/${story.character_id}`}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--accent)]/8 border border-[var(--accent)]/15 text-[var(--accent-hover)] hover:bg-[var(--accent)]/15 transition-colors z-[2] relative pointer-events-auto"
+                      >
+                        <Users className="w-2.5 h-2.5" />
+                        {story.character_name_for_link}
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
             )

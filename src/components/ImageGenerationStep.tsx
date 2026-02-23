@@ -214,6 +214,15 @@ export function ImageGenerationStep({
                   </div>
                 )}
 
+                {/* Text overlay on image — TikTok carousel style */}
+                {scene.description && (
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-4 pb-5 pt-16">
+                    <p className="text-white text-sm font-semibold leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                      {scene.description}
+                    </p>
+                  </div>
+                )}
+
                 {/* Status overlay */}
                 {status === 'done' && scene.image_url && (
                   <div className="absolute top-3 right-3">
@@ -231,20 +240,17 @@ export function ImageGenerationStep({
                 </div>
               </div>
 
-              {/* Scene info */}
-              <div className="p-4">
-                <p className="text-xs text-zinc-400 line-clamp-2 mb-3">{scene.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-zinc-600">{scene.emotional_beat}</span>
-                  <button
-                    onClick={() => handleRegenerateSingle(index)}
-                    disabled={status === 'generating'}
-                    className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-30"
-                    title="Regenerate this image"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${status === 'generating' ? 'animate-spin' : ''}`} />
-                  </button>
-                </div>
+              {/* Scene meta */}
+              <div className="px-4 py-3 flex items-center justify-between">
+                <span className="text-xs text-zinc-600">{scene.emotional_beat}</span>
+                <button
+                  onClick={() => handleRegenerateSingle(index)}
+                  disabled={status === 'generating'}
+                  className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-30"
+                  title="Regenerate this image"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${status === 'generating' ? 'animate-spin' : ''}`} />
+                </button>
               </div>
             </div>
           )

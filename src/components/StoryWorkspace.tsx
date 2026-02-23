@@ -9,7 +9,7 @@ import { ExportStep } from './ExportStep'
 import { ArcOverlay } from './ArcOverlay'
 import { ProToolsDrawer } from './ProToolsDrawer'
 import Link from 'next/link'
-import { ArrowLeft, Eye, Sparkles } from 'lucide-react'
+import { ArrowLeft, Eye, Sparkles, Zap } from 'lucide-react'
 import { buildArcScenes } from './ArcTemplateGrid'
 
 const DEFAULT_HEARTBEAT_INTENSITIES = [5, 4, 3, 1, 3, 6, 8, 9]
@@ -32,6 +32,12 @@ export function StoryWorkspace({
   const [audioBrief, setAudioBrief] = useState<AudioBrief | null>(null)
   const [generatingStory, setGeneratingStory] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [postCaption, setPostCaption] = useState<{ hook: string; body: string; cta: string; hashtags: string } | null>(null)
+
+  // One-click pipeline state
+  type PipelineStage = 'idle' | 'story' | 'images' | 'caption' | 'done' | 'error'
+  const [pipelineStage, setPipelineStage] = useState<PipelineStage>('idle')
+  const [pipelineError, setPipelineError] = useState<string | null>(null)
 
   // Auto-save logic (preserved from original)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -172,24 +178,111 @@ export function StoryWorkspace({
       if (data.scenes && Array.isArray(data.scenes)) {
         const newScenes: Scene[] = data.scenes.map(
           (s: { description: string; emotional_beat: string; visual_prompt: string }, i: number) => ({
-            id: `scene-${Date.now()}-${i}`,
+            id: data.scene_ids?.[i] || `scene-${Date.now()}-${i}`,
             story_id: story.id,
             order_index: i,
             description: s.description,
             emotional_beat: s.emotional_beat,
             visual_prompt: s.visual_prompt,
             image_url: null,
-            caption: null,
+            caption: s.description, // Auto-populate overlay text from description
             created_at: new Date().toISOString(),
           })
         )
         setScenes(newScenes)
+        return newScenes // Return for pipeline chaining
       }
     } catch (err) {
       console.error('Failed to generate scenes:', err)
     } finally {
       setGeneratingStory(false)
     }
+    return null
+  }
+
+  // ── Pipeline helpers ──────────────────────────────────────────────────────
+
+  async function generateImagesForScenes(targetScenes: Scene[]): Promise<Scene[] | null> {
+    try {
+      const res = await fetch('/api/generate-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visual_prompts: targetScenes.map((s) => s.visual_prompt),
+          character_physical: story.character_physical,
+          scene_ids: targetScenes.map((s) => s.id),
+          ...(lockedCharacter?.visual_dna ? { visual_dna: lockedCharacter.visual_dna } : story.visual_dna ? { visual_dna: story.visual_dna } : {}),
+        }),
+      })
+      const data = await res.json()
+      if (data.images && Array.isArray(data.images)) {
+        const updated = targetScenes.map((scene) => {
+          const img = data.images.find((i: { scene_id: string; image_url: string | null }) => i.scene_id === scene.id)
+          return img?.image_url ? { ...scene, image_url: img.image_url } : scene
+        })
+        setScenes(updated)
+        return updated
+      }
+    } catch (err) {
+      console.error('Image generation failed:', err)
+    }
+    return null
+  }
+
+  async function generatePostCaption(targetScenes: Scene[]): Promise<void> {
+    try {
+      const res = await fetch('/api/generate-caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          character_name: story.character_name,
+          character_age: story.character_age,
+          character_job: story.character_job,
+          emotional_tone: story.emotional_tone,
+          scenes: targetScenes.map((s) => ({
+            description: s.description,
+            emotional_beat: s.emotional_beat,
+          })),
+        }),
+      })
+      const data = await res.json()
+      if (data.caption) {
+        setPostCaption(data.caption)
+      }
+    } catch (err) {
+      console.error('Caption generation failed:', err)
+    }
+  }
+
+  // ── One-Click Pipeline ─────────────────────────────────────────────────────
+
+  async function handleGenerateEverything() {
+    setPipelineStage('story')
+    setPipelineError(null)
+
+    // Stage 1: Generate story
+    const newScenes = await handleGenerateStory()
+    if (!newScenes || newScenes.length === 0) {
+      setPipelineStage('error')
+      setPipelineError('Story generation failed')
+      return
+    }
+
+    // Stage 2: Generate images
+    setPipelineStage('images')
+    const withImages = await generateImagesForScenes(newScenes)
+    if (!withImages || !withImages.some((s) => s.image_url)) {
+      setPipelineStage('error')
+      setPipelineError('Image generation failed')
+      return
+    }
+
+    // Stage 3: Generate post caption
+    setPipelineStage('caption')
+    await generatePostCaption(withImages)
+
+    setPipelineStage('done')
+    setTimeout(() => setPipelineStage('idle'), 3000)
   }
 
   const canGenerate =
@@ -200,32 +293,33 @@ export function StoryWorkspace({
     story.character_physical &&
     story.emotional_tone
 
+  const isPipelineRunning = pipelineStage !== 'idle' && pipelineStage !== 'done' && pipelineStage !== 'error'
   const hasScenes = scenes.length > 0
   const hasImages = scenes.some((s) => s.image_url)
   const backHref = lockedCharacter ? `/characters/${lockedCharacter.id}` : '/'
   const backLabel = lockedCharacter ? `Back to ${lockedCharacter.name}` : 'Back to dashboard'
 
   return (
-    <div className="fade-in space-y-8">
+    <div className="fade-in space-y-10">
       {/* Top bar */}
       <div className="flex items-center justify-between">
         <Link
           href={backHref}
-          className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors group"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           {backLabel}
         </Link>
 
         <div className="flex items-center gap-3">
           {saveStatus !== 'idle' && (
             <span
-              className={`text-xs transition-opacity ${
+              className={`text-xs transition-all duration-300 ${
                 saveStatus === 'saving'
-                  ? 'text-zinc-500'
+                  ? 'text-zinc-600'
                   : saveStatus === 'saved'
-                    ? 'text-emerald-500/70'
-                    : 'text-red-400/70'
+                    ? 'text-emerald-500/60'
+                    : 'text-red-400/60'
               }`}
             >
               {saveStatus === 'saving' && 'Saving...'}
@@ -237,12 +331,7 @@ export function StoryWorkspace({
           {hasScenes && !story.id.startsWith('demo-') && !story.id.startsWith('new-') && (
             <Link
               href={`/stories/${story.id}/preview`}
-              className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-xl transition-colors"
-              style={{
-                background: 'rgba(109,90,255,0.12)',
-                border: '1px solid rgba(109,90,255,0.3)',
-                color: '#8577ff',
-              }}
+              className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-xl transition-all bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent-hover)] hover:bg-[var(--accent)]/15 hover:border-[var(--accent)]/30"
             >
               <Eye className="w-3.5 h-3.5" />
               Preview
@@ -252,38 +341,129 @@ export function StoryWorkspace({
       </div>
 
       {/* ① CHARACTER */}
-      <CharacterStep
-        story={story}
-        onUpdate={handleStoryUpdate}
-        lockedCharacter={lockedCharacter}
-      />
+      <div className="section-reveal">
+        <CharacterStep
+          story={story}
+          onUpdate={handleStoryUpdate}
+          lockedCharacter={lockedCharacter}
+        />
+      </div>
 
-      {/* Generate Story button */}
+      {/* Generate buttons */}
       {canGenerate && (
-        <div className="flex justify-center">
-          <button
-            onClick={handleGenerateStory}
-            disabled={generatingStory}
-            className="btn-accent flex items-center gap-2 px-6 py-3 text-base"
-          >
-            {generatingStory ? (
-              <>
-                <div className="spinner" />
-                <span>Generating Story...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5" />
-                <span>{hasScenes ? 'Regenerate Story' : 'Generate Story'}</span>
-              </>
-            )}
-          </button>
+        <div className="section-reveal space-y-5">
+          <div className="flex flex-col items-center gap-3">
+            {/* One-Click Pipeline — hero action */}
+            <button
+              onClick={handleGenerateEverything}
+              disabled={isPipelineRunning || generatingStory}
+              className="btn-hero flex items-center gap-2.5"
+            >
+              {isPipelineRunning ? (
+                <>
+                  <div className="spinner" style={{ borderTopColor: 'white', borderColor: 'rgba(255,255,255,0.2)' }} />
+                  <span>
+                    {pipelineStage === 'story' && 'Writing story...'}
+                    {pipelineStage === 'images' && 'Generating images...'}
+                    {pipelineStage === 'caption' && 'Writing caption...'}
+                  </span>
+                </>
+              ) : pipelineStage === 'done' ? (
+                <>
+                  <Zap className="w-5 h-5" />
+                  <span>Done! Scroll down to export</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5" />
+                  <span>{hasScenes ? 'Regenerate Everything' : 'Generate Everything'}</span>
+                </>
+              )}
+            </button>
+
+            {/* Story-only — tertiary */}
+            <button
+              onClick={() => handleGenerateStory()}
+              disabled={generatingStory || isPipelineRunning}
+              className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1.5"
+            >
+              {generatingStory && !isPipelineRunning ? (
+                <>
+                  <div className="spinner" style={{ width: '0.875rem', height: '0.875rem' }} />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>or generate story only</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Pipeline progress bar */}
+          {isPipelineRunning && (
+            <div className="max-w-sm mx-auto glass-card p-4">
+              <div className="flex items-center gap-1.5 mb-3">
+                {(['story', 'images', 'caption'] as const).map((stage, i) => {
+                  const stageIndex = ['story', 'images', 'caption'].indexOf(pipelineStage)
+                  const isDone = stageIndex > i
+                  const isActive = pipelineStage === stage
+                  return (
+                    <div key={stage} className="flex-1">
+                      <div
+                        className={`h-1 rounded-full transition-all duration-700 ${
+                          isActive
+                            ? 'bg-[var(--accent)] pulse-glow'
+                            : isDone
+                              ? 'bg-emerald-500'
+                              : 'bg-white/[0.06]'
+                        }`}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="flex justify-between text-[10px] font-medium px-0.5">
+                {(['story', 'images', 'caption'] as const).map((stage, i) => {
+                  const stageIndex = ['story', 'images', 'caption'].indexOf(pipelineStage)
+                  const isDone = stageIndex > i
+                  const isActive = pipelineStage === stage
+                  const labels = ['Story', 'Images', 'Caption']
+                  return (
+                    <span
+                      key={stage}
+                      className={
+                        isActive ? 'text-[var(--accent)]' : isDone ? 'text-emerald-500/70' : 'text-zinc-600'
+                      }
+                    >
+                      {isDone ? '\u2713 ' : ''}{labels[i]}
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Pipeline error */}
+          {pipelineStage === 'error' && pipelineError && (
+            <div className="max-w-sm mx-auto glass-card p-4 border-red-500/20 text-center">
+              <p className="text-sm text-red-400">{pipelineError}</p>
+              <button
+                onClick={() => { setPipelineStage('idle'); setPipelineError(null) }}
+                className="text-xs text-zinc-500 hover:text-zinc-300 mt-2"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
         </div>
       )}
 
       {/* ② SCENES */}
       {hasScenes && (
-        <>
+        <div className="section-reveal">
+          <div className="section-divider mb-8" />
           <StoryArcStep
             story={story}
             scenes={scenes}
@@ -292,45 +472,58 @@ export function StoryWorkspace({
 
           {/* Arc Overlay — shows heartbeat alignment */}
           {story.heartbeat_arc && story.heartbeat_arc.scenes.length > 0 && (
-            <ArcOverlay heartbeatArc={story.heartbeat_arc} scenes={scenes} />
+            <div className="mt-6">
+              <ArcOverlay heartbeatArc={story.heartbeat_arc} scenes={scenes} />
+            </div>
           )}
-        </>
+        </div>
       )}
 
       {/* ③ IMAGES */}
       {hasScenes && (
-        <ImageGenerationStep
-          story={story}
-          scenes={scenes}
-          visualDna={lockedCharacter?.visual_dna}
-          onScenesUpdate={handleScenesUpdate}
-          swipeScore={swipeMomentumResult?.overall_score ?? null}
-        />
+        <div className="section-reveal">
+          <div className="section-divider mb-8" />
+          <ImageGenerationStep
+            story={story}
+            scenes={scenes}
+            visualDna={lockedCharacter?.visual_dna}
+            onScenesUpdate={handleScenesUpdate}
+            swipeScore={swipeMomentumResult?.overall_score ?? null}
+          />
+        </div>
       )}
 
       {/* ④ EXPORT */}
       {hasImages && (
-        <ExportStep
-          story={story}
-          scenes={scenes}
-          onScenesUpdate={handleScenesUpdate}
-          audioBrief={audioBrief}
-        />
+        <div className="section-reveal">
+          <div className="section-divider mb-8" />
+          <ExportStep
+            story={story}
+            scenes={scenes}
+            onScenesUpdate={handleScenesUpdate}
+            audioBrief={audioBrief}
+            postCaption={postCaption}
+            onPostCaptionChange={setPostCaption}
+          />
+        </div>
       )}
 
       {/* Pro Tools Drawer */}
       {hasScenes && (
-        <ProToolsDrawer
-          story={story}
-          scenes={scenes}
-          onStoryUpdate={handleStoryUpdate}
-          onScenesUpdate={handleScenesUpdate}
-          screeningResult={screeningResult}
-          onScreeningComplete={setScreeningResult}
-          swipeMomentumResult={swipeMomentumResult}
-          onSwipeAnalysisComplete={setSwipeMomentumResult}
-          onAudioBriefGenerated={setAudioBrief}
-        />
+        <div className="section-reveal">
+          <div className="section-divider mb-8" />
+          <ProToolsDrawer
+            story={story}
+            scenes={scenes}
+            onStoryUpdate={handleStoryUpdate}
+            onScenesUpdate={handleScenesUpdate}
+            screeningResult={screeningResult}
+            onScreeningComplete={setScreeningResult}
+            swipeMomentumResult={swipeMomentumResult}
+            onSwipeAnalysisComplete={setSwipeMomentumResult}
+            onAudioBriefGenerated={setAudioBrief}
+          />
+        </div>
       )}
     </div>
   )

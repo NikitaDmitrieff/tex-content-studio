@@ -15,8 +15,10 @@ import {
   Sparkles,
   Globe,
 } from 'lucide-react'
+import { VoiceStudioPanel } from './VoiceStudioPanel'
+import { TrendingMusicPanel } from './TrendingMusicPanel'
 
-type PostCaption = {
+export type PostCaption = {
   hook: string
   body: string
   cta: string
@@ -43,18 +45,29 @@ export function ExportStep({
   scenes,
   onScenesUpdate,
   audioBrief,
+  postCaption,
+  onPostCaptionChange,
 }: {
   story: Story
   scenes: Scene[]
   onScenesUpdate: (scenes: Scene[]) => void
   audioBrief?: AudioBrief | null
+  postCaption?: PostCaption | null
+  onPostCaptionChange?: (caption: PostCaption | null) => void
 }) {
   const [language, setLanguage] = useState<'en' | 'fr'>('en')
   const [currentSlide, setCurrentSlide] = useState(0)
   const [downloading, setDownloading] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
-  const [caption, setCaption] = useState<PostCaption | null>(null)
+  const [localCaption, setLocalCaption] = useState<PostCaption | null>(null)
   const [generatingCaption, setGeneratingCaption] = useState(false)
+
+  // Use prop caption if provided, otherwise local state
+  const caption = postCaption ?? localCaption
+  const setCaption = (c: PostCaption | null) => {
+    if (onPostCaptionChange) onPostCaptionChange(c)
+    else setLocalCaption(c)
+  }
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const scenesWithImages = scenes.filter((s) => s.image_url)
@@ -173,28 +186,36 @@ export function ExportStep({
 
   return (
     <div className="space-y-6">
-      {/* Section header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Export</h2>
-          <p className="text-sm text-zinc-400 mt-1">
-            Preview carousel, generate post caption, and download
-          </p>
+      {/* Section header — Ready to Post */}
+      <div className="glass-card p-5 border-emerald-500/20 bg-emerald-500/5">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              Ready to Post
+              {caption && <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">Caption ready</span>}
+            </h2>
+            <p className="text-sm text-zinc-400 mt-0.5">
+              Download images, copy caption, open TikTok
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLanguage((l) => (l === 'en' ? 'fr' : 'en'))}
+              className="btn-secondary flex items-center gap-1.5 text-xs py-1.5 px-3"
+              title="Toggle language"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              {language === 'en' ? 'EN' : 'FR'}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Language toggle */}
-          <button
-            onClick={() => setLanguage((l) => (l === 'en' ? 'fr' : 'en'))}
-            className="btn-secondary flex items-center gap-1.5 text-xs py-1.5 px-3"
-            title="Toggle language"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            {language === 'en' ? 'EN' : 'FR'}
-          </button>
+
+        {/* Two big action buttons */}
+        <div className="flex gap-3">
           <button
             onClick={handleDownloadAll}
             disabled={downloading || scenesWithImages.length === 0}
-            className="btn-accent flex items-center gap-2"
+            className="flex-1 btn-accent flex items-center justify-center gap-2 py-3"
           >
             {downloading ? (
               <>
@@ -204,10 +225,46 @@ export function ExportStep({
             ) : (
               <>
                 <Download className="w-4 h-4" />
-                <span>Download All</span>
+                <span>Download Images ({scenesWithImages.length} slides)</span>
               </>
             )}
           </button>
+          {caption ? (
+            <button
+              onClick={() => copyToClipboard(getFullCaption(), 'caption-main')}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all bg-white/[0.08] border border-white/[0.12] text-white hover:bg-white/[0.12]"
+            >
+              {copied === 'caption-main' ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400">Copied to clipboard!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copy Caption to Clipboard</span>
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={handleGenerateCaption}
+              disabled={generatingCaption}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all bg-white/[0.08] border border-white/[0.12] text-white hover:bg-white/[0.12]"
+            >
+              {generatingCaption ? (
+                <>
+                  <div className="spinner" style={{ width: '1rem', height: '1rem' }} />
+                  <span>Writing caption...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Generate Post Caption</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -535,6 +592,19 @@ export function ExportStep({
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Voice Generation + Trending Music */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* AI Voice Studio */}
+        <div className="glass-card p-6">
+          <VoiceStudioPanel story={story} scenes={scenes} />
+        </div>
+
+        {/* Trending TikTok Sounds */}
+        <div className="glass-card p-6">
+          <TrendingMusicPanel />
         </div>
       </div>
     </div>

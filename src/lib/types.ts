@@ -429,3 +429,35 @@ export type SceneWordAnalysis = {
 export type CaptionWordAnalysisResult = {
   scenes: SceneWordAnalysis[]
 }
+
+// ── AI Voice Generation (Fish Audio) ────────────────────────────────────────
+
+export type SlideVoice = {
+  slide_number: number
+  text: string
+  emotion_tag: string
+  audio_url: string | null
+  duration_seconds: number | null
+  status: 'idle' | 'generating' | 'ready' | 'error'
+}
+
+// ── Trending TikTok Music (SociaVault) ──────────────────────────────────────
+
+export type TrendingSong = {
+  rank: number
+  title: string
+  author: string
+  cover_url: string | null
+  tiktok_link: string | null
+  rank_diff: number | null
+  is_commercial: boolean
+}
+
+export type TrendingMusicResult = {
+  songs: TrendingSong[]
+  country: string
+  rank_type: string
+  time_period: number
+  fetched_at: string
+  demo?: boolean
+}

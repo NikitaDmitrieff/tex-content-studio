@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     const characterContext = `Character: ${story.character_name}, age ${story.character_age}, ${story.character_job}. ${story.character_backstory}`
 
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 4096,
       messages: [
         {

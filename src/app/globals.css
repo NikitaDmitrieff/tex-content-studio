@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
+  --background: #07070a;
   --foreground: #ededed;
   --accent: #6d5aff;
   --accent-hover: #8577ff;
   --accent-glow: rgba(109, 90, 255, 0.3);
-  --glass-bg: rgba(255, 255, 255, 0.04);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.07);
   --glass-border-hover: rgba(255, 255, 255, 0.14);
+  --surface-1: rgba(255, 255, 255, 0.04);
+  --surface-2: rgba(255, 255, 255, 0.06);
 }
 
 @theme inline {
@@ -19,6 +21,8 @@
   --font-sans: var(--font-inter);
 }
 
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -26,14 +30,34 @@ body {
   min-height: 100vh;
 }
 
-/* Glass card base */
+/* Ambient background glow — subtle purple orbs */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 10%, rgba(109, 90, 255, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 80% 80%, rgba(109, 90, 255, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 60% 40%, rgba(59, 130, 246, 0.025) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* Selection */
+::selection {
+  background: rgba(109, 90, 255, 0.3);
+  color: white;
+}
+
+/* ── Glass morphism ──────────────────────────────────────────────────────── */
+
 .glass-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: 1rem;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .glass-card:hover {
@@ -42,11 +66,14 @@ body {
 
 .glass-card-interactive:hover {
   border-color: var(--glass-border-hover);
-  box-shadow: 0 0 30px rgba(109, 90, 255, 0.06);
-  transform: translateY(-1px);
+  box-shadow:
+    0 0 30px rgba(109, 90, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transform: translateY(-2px);
 }
 
-/* Status badges */
+/* ── Status badges ───────────────────────────────────────────────────────── */
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -59,9 +86,10 @@ body {
   line-height: 1.4;
 }
 
-/* Accent button */
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
 .btn-accent {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, #5a45e6 100%);
   color: white;
   border: none;
   border-radius: 0.75rem;
@@ -69,12 +97,26 @@ body {
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.btn-accent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .btn-accent:hover {
-  background: var(--accent-hover);
-  box-shadow: 0 0 24px var(--accent-glow);
+  box-shadow: 0 0 28px var(--accent-glow), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-accent:hover::before {
+  opacity: 1;
 }
 
 .btn-accent:active {
@@ -88,9 +130,12 @@ body {
   box-shadow: none;
 }
 
-/* Secondary button */
+.btn-accent:disabled::before {
+  display: none;
+}
+
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-1);
   color: var(--foreground);
   border: 1px solid var(--glass-border);
   border-radius: 0.75rem;
@@ -98,12 +143,13 @@ body {
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--surface-2);
   border-color: var(--glass-border-hover);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary:disabled {
@@ -111,12 +157,54 @@ body {
   cursor: not-allowed;
 }
 
-/* TikTok vertical preview */
+/* Hero button — used for Generate Everything */
+.btn-hero {
+  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 50%, #6366f1 100%);
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  padding: 0.875rem 2rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, transform 0.15s ease;
+  box-shadow: 0 0 20px rgba(109, 90, 255, 0.15);
+}
+
+.btn-hero::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+}
+
+.btn-hero:hover {
+  box-shadow: 0 0 40px rgba(109, 90, 255, 0.3), 0 8px 24px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-hero:active {
+  transform: scale(0.98) translateY(0);
+}
+
+.btn-hero:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 0 12px rgba(109, 90, 255, 0.1);
+}
+
+/* ── TikTok preview ──────────────────────────────────────────────────────── */
+
 .tiktok-preview {
   aspect-ratio: 9 / 16;
   border-radius: 1rem;
   overflow: hidden;
-  background: #111;
+  background: #0d0d12;
   border: 1px solid var(--glass-border);
   position: relative;
 }
@@ -127,7 +215,8 @@ body {
   object-fit: cover;
 }
 
-/* Step indicator */
+/* ── Step indicator (legacy, kept for compatibility) ─────────────────────── */
+
 .step-indicator {
   display: flex;
   align-items: center;
@@ -174,9 +263,10 @@ body {
   background: #22c55e;
 }
 
-/* Input styles */
+/* ── Inputs ──────────────────────────────────────────────────────────────── */
+
 .input-dark {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--glass-border);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
@@ -184,25 +274,33 @@ body {
   font-size: 0.875rem;
   width: 100%;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input-dark:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(109, 90, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(109, 90, 255, 0.12);
 }
 
 .input-dark::placeholder {
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.2);
 }
 
-/* Textarea */
 textarea.input-dark {
   resize: vertical;
   min-height: 5rem;
 }
 
-/* Loading spinner */
+/* ── Section divider ─────────────────────────────────────────────────────── */
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  margin: 0.5rem 0;
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -210,13 +308,12 @@ textarea.input-dark {
 .spinner {
   width: 1.25rem;
   height: 1.25rem;
-  border: 2px solid var(--glass-border);
+  border: 2px solid rgba(255, 255, 255, 0.12);
   border-top-color: var(--accent);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
 
-/* Fade in animation */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -226,7 +323,26 @@ textarea.input-dark {
   animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* Pulse glow for generating state */
+/* Staggered section reveal — each section slides up with delay */
+@keyframes slideReveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-reveal {
+  animation: slideReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.section-reveal:nth-child(1) { animation-delay: 0s; }
+.section-reveal:nth-child(2) { animation-delay: 0.08s; }
+.section-reveal:nth-child(3) { animation-delay: 0.16s; }
+.section-reveal:nth-child(4) { animation-delay: 0.24s; }
+.section-reveal:nth-child(5) { animation-delay: 0.32s; }
+.section-reveal:nth-child(6) { animation-delay: 0.4s; }
+.section-reveal:nth-child(7) { animation-delay: 0.48s; }
+.section-reveal:nth-child(8) { animation-delay: 0.56s; }
+
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 8px rgba(109, 90, 255, 0.2); }
   50% { box-shadow: 0 0 24px rgba(109, 90, 255, 0.4); }
@@ -234,6 +350,18 @@ textarea.input-dark {
 
 .pulse-glow {
   animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Shimmer — for loading skeleton states */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(255, 255, 255, 0.04) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
 }
 
 /* Scanning bar animation for AuthenticityScanner */
@@ -258,7 +386,8 @@ textarea.input-dark {
   width: 50%;
 }
 
-/* Scrollbar styling */
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -269,15 +398,16 @@ textarea.input-dark {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.16);
 }
 
-/* Caption Power Word Heatmap */
+/* ── Caption Power Word Heatmap ──────────────────────────────────────────── */
+
 .word-power-high {
   background-color: #22c55e;
   color: #14532d;

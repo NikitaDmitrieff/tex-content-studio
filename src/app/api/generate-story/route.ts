@@ -46,49 +46,49 @@ export async function POST(request: NextRequest) {
   if (!apiKey) {
     const fallbackScenes = [
       {
-        description: `I was ${character.age} and couldn't tie my own shoes without holding my breath.`,
+        description: `${character.age} ans. Je pouvais plus lacer mes chaussures.`,
         emotional_beat: 'Hook',
-        visual_prompt: `${character.physical_description}, struggling to bend over to tie shoes, living room floor, shot on old phone camera, grainy, realistic, unflattering angle, candid`,
+        visual_prompt: `${character.physical_description}, struggling to bend over, living room floor, shot on old phone camera 2015 Android quality, grainy sensor noise, harsh overhead lighting, unflattering angle, compression artifacts`,
       },
       {
-        description: `4:30 AM. Monster Energy and a gas station burrito for breakfast. Been doing this for years. My back hurts before my shift even starts. This is just... whatever. It's fine.`,
+        description: `4h30. Monster Energy au petit-dej. Encore.`,
         emotional_beat: 'Mundane routine',
-        visual_prompt: `Dimly lit kitchen, energy drink cans and fast food wrappers, ${character.physical_description}, eating alone, early morning, shot on phone, harsh fluorescent lighting`,
+        visual_prompt: `Dimly lit kitchen, energy drink cans and fast food wrappers, ${character.physical_description}, eating alone, early morning, shot on old phone, harsh fluorescent lighting, grainy, slightly blurry, low resolution`,
       },
       {
-        description: `My daughter posted family photos from Easter. I wasn't in any of them. Not because I wasn't there. Because I asked her not to tag me.`,
+        description: `Photos de famille a Paques. J'ai demande qu'on me tague pas.`,
         emotional_beat: 'Self-awareness',
-        visual_prompt: `${character.physical_description} looking at phone screen, sad expression, sitting on couch alone, natural lighting, candid phone photo, slightly out of focus`,
+        visual_prompt: `${character.physical_description} looking at phone screen alone on couch, shot on 2015 Android phone, grainy sensor noise, slightly out of focus, bad indoor lighting, compression artifacts`,
       },
       {
-        description: `Couldn't keep up with my 6 year old at the park. Had to sit down on a bench and pretend I was "just resting." She looked back at me and said "it's okay grandpa." I'm her dad.`,
+        description: `Ma fille m'a dit "c'est pas grave papy." Je suis son pere.`,
         emotional_beat: 'Breaking point',
-        visual_prompt: `${character.physical_description} sitting alone on park bench, head down, child playing in background out of focus, golden hour, raw phone photo quality, muted colors`,
+        visual_prompt: `${character.physical_description} sitting alone on park bench head down, child blurred in background, shot on old phone camera, overexposed sky, grainy, motion blur, muted washed out colors`,
       },
       {
-        description: `Downloaded this app at like 2am. Couldn't sleep. Figured I'd delete it in the morning. I didn't.`,
+        description: `Telecharge un truc a 2h du mat. J'ai pas supprime.`,
         emotional_beat: 'Discovery',
-        visual_prompt: `${character.physical_description} in bed at night, phone screen glowing on face, dark room, only light from phone, shot on phone camera, realistic`,
+        visual_prompt: `${character.physical_description} in bed at night, phone screen glowing on face, dark room, shot on old phone camera, only phone light, heavy grain, slightly blurry, compression artifacts`,
       },
       {
-        description: `First workout I did 4 minutes and thought I was gonna die. Four. Minutes. My shirt was soaked. I sat on the kitchen floor for 20 minutes after. But I opened it again the next day. Idk why.`,
+        description: `Premier entrainement. 4 minutes. J'ai cru mourir.`,
         emotional_beat: 'Early struggle',
-        visual_prompt: `${character.physical_description} sitting on kitchen floor, sweaty, exhausted, red-faced, water bottle nearby, messy apartment, raw phone photo, slightly blurry`,
+        visual_prompt: `${character.physical_description} sitting on kitchen floor sweaty exhausted red-faced, messy apartment, shot on old Android phone, harsh flash, grainy, slightly blurry, bad composition`,
       },
       {
-        description: `Week 3. Everything hurts but different. Like a good hurt? Packed my own lunch today for the first time in maybe 10 years. Turkey sandwich. Nothing crazy. Felt like something though.`,
+        description: `Semaine 3. Prepare mon dejeuner pour la premiere fois en 10 ans.`,
         emotional_beat: 'Small wins',
-        visual_prompt: `${character.physical_description} in kitchen making a simple lunch, small smile, natural daylight through window, phone photo quality, genuine candid moment`,
+        visual_prompt: `${character.physical_description} in kitchen making a sandwich, small smile, shot on old phone, fluorescent lighting, grainy sensor noise, slightly overexposed, candid`,
       },
       {
-        description: `Two months in. Scale barely moved tbh. But I can tie my shoes now. And I sleep through the night. My coworker said I "look different" and I pretended I didn't know what she meant.`,
+        description: `2 mois. La balance a pas bouge. Mais je lace mes chaussures.`,
         emotional_beat: 'Quiet progress',
-        visual_prompt: `${character.physical_description} but slightly healthier posture, at work, subtle confidence, natural lighting, candid phone photo style`,
+        visual_prompt: `${character.physical_description} slightly healthier posture at work, shot on old phone camera, office fluorescent lighting, compression artifacts, grainy, candid unposed`,
       },
       {
-        description: `Took a selfie yesterday. First one in years where I didn't delete it immediately. I'm not a fitness model. I'm still me. But I'm me again, if that makes sense.`,
+        description: `Premier selfie en 3 ans que j'ai pas supprime direct.`,
         emotional_beat: 'Transformation',
-        visual_prompt: `${character.physical_description} but noticeably transformed, taking mirror selfie, slight smile, better posture, warm lighting, phone selfie quality, genuine expression`,
+        visual_prompt: `${character.physical_description} but slightly transformed, dirty mirror selfie, finger partially visible, shot on old phone, bathroom lighting, grainy, genuine half-smile, not professional`,
       },
     ]
 
@@ -158,7 +158,7 @@ ${arc_template_used ? `Arc template: "${arc_template_used}" — honor the shape 
 9-10. Where I am now. Not a transformation ad. Just... different. Better. Still me.`
 
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 2048,
       messages: [
         {
@@ -179,7 +179,13 @@ VOICE RULES — this is the most important part:
 - BANNED PHRASES (these scream AI): "little did I know", "something shifted", "I found myself", "game-changer", "needless to say", "fast forward", "plot twist", "here's the thing", "journey", "that's when everything changed"
 - Keep it messy. Real people contradict themselves. They joke in dark moments. They downplay big things.
 - Use casual punctuation: "idk", "lol", "ngl", "tbh" sparingly — like a real person would
-- Some slides should be just 1 sentence. Others 2-3. Vary it.
+
+TEXT LENGTH — CRITICAL:
+- Each slide description MUST be very short. MAX 2 sentences. Most slides should be 1 sentence.
+- This text gets overlaid on the image. People swipe fast. They do NOT read paragraphs.
+- Think TikTok carousel: punchy, raw, 8-15 words per slide is ideal. Never exceed 25 words.
+- Examples of good length: "4:30 AM. Monster Energy for breakfast. Again." or "My daughter said 'it's okay grandpa.' I'm her dad."
+- If it feels too long, cut it in half. Then cut it again.
 
 ${storyFlowPrompt}
 
@@ -187,12 +193,19 @@ SLIDE 1 MUST be a scroll-stopping hook. Something like "I was 54 and couldn't ti
 
 ${!isSequel ? 'THE APP MENTION: Maximum ONE slide can reference finding an app. It should feel throwaway — "downloaded this app at like 2am, honestly didn\'t think I\'d open it again." The story is about the PERSON, not the product. The app is just a tool they happened to find.' : ''}
 
+VISUAL PROMPT RULES — CRITICAL FOR REALISM:
+- Every visual_prompt MUST enforce: "shot on old phone camera, 2015 Android quality, slightly blurry, bad lighting, grainy sensor noise, compression artifacts, low resolution feel, NOT professional photography, NOT studio lighting, NOT HDR, NOT AI-generated"
+- Think: screenshots from a security camera, a drunk selfie, a hastily taken photo in bad lighting
+- Include character physical description in every prompt
+- NEVER use words like: "cinematic", "dramatic lighting", "golden hour", "bokeh", "professional", "high quality", "detailed", "beautiful", "stunning"
+- Add imperfections: "slightly overexposed", "harsh flash", "fluorescent lighting", "motion blur", "finger partially blocking lens", "dirty mirror selfie"
+
 Respond ONLY with a JSON array (no markdown, no code fences):
 [
   {
-    "description": "Slide text — first person, raw, real",
+    "description": "Slide text — MAX 2 sentences, 8-15 words ideal, overlay-friendly",
     "emotional_beat": "2-4 word beat label",
-    "visual_prompt": "Photography prompt for AI image generation — must include character physical description"
+    "visual_prompt": "Old phone camera photo — must include character physical description and phone camera imperfections"
   }
 ]`,
         },

@@ -16,6 +16,8 @@ import {
   Music,
   Video,
   Globe,
+  Mic,
+  Radio,
 } from 'lucide-react'
 
 import { HeartbeatStep } from './HeartbeatStep'
@@ -31,6 +33,8 @@ import { AudioBriefPanel } from './AudioBriefPanel'
 import { CommentStormEngine } from './CommentStormEngine'
 import { VoiceoverScriptPanel } from './VoiceoverScriptPanel'
 import { MultiPlatformAmplifier } from './MultiPlatformAmplifier'
+import { VoiceStudioPanel } from './VoiceStudioPanel'
+import { TrendingMusicPanel } from './TrendingMusicPanel'
 import { RealityAnchorCard } from './RealityAnchorCard'
 
 type ToolId =
@@ -46,6 +50,8 @@ type ToolId =
   | 'audio'
   | 'commentstorm'
   | 'voiceover'
+  | 'voicestudio'
+  | 'trendingmusic'
   | 'amplify'
 
 type ToolDef = {
@@ -76,6 +82,8 @@ const POST_PUBLISH_TOOLS: ToolDef[] = [
 
 const REPURPOSING_TOOLS: ToolDef[] = [
   { id: 'voiceover', label: 'Voiceover Script Companion', description: 'Timing + narration for video', icon: <Video className="w-4 h-4" />, requiresScenes: true, requiresImages: true },
+  { id: 'voicestudio', label: 'AI Voice Studio', description: 'Generate AI voiceover per slide', icon: <Mic className="w-4 h-4" />, requiresScenes: true, requiresImages: false },
+  { id: 'trendingmusic', label: 'Trending Music Picker', description: 'Top TikTok songs by country', icon: <Radio className="w-4 h-4" />, requiresScenes: false, requiresImages: false },
   { id: 'amplify', label: 'Multi-Platform Amplifier', description: 'Adapt to Shorts, Reels, etc.', icon: <Globe className="w-4 h-4" />, requiresScenes: true, requiresImages: false },
 ]
 
@@ -250,6 +258,10 @@ export function ProToolsDrawer({
         return <CommentStormEngine story={story} onClose={() => setExpandedTool(null)} />
       case 'voiceover':
         return <VoiceoverScriptPanel story={story} scenes={scenes} />
+      case 'voicestudio':
+        return <VoiceStudioPanel story={story} scenes={scenes} />
+      case 'trendingmusic':
+        return <TrendingMusicPanel />
       case 'amplify':
         return <MultiPlatformAmplifier story={story} scenes={scenes} language="en" />
       default:

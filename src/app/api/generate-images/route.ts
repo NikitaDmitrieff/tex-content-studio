@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     const results = await Promise.allSettled(
       visual_prompts.map(async (prompt, index) => {
         const promptWithDna = visual_dna ? `${visual_dna}, ${prompt}` : prompt
-        const enhancedPrompt = `${promptWithDna}. Character details: ${character_physical}. Style: shot on iPhone 8, slightly grainy, natural lighting, candid photography, realistic, NOT AI-looking, NOT stylized, documentary style photo.`
+        const enhancedPrompt = `${promptWithDna}. Character: ${character_physical}. MANDATORY STYLE: shot on cheap 2015 Android phone, low megapixel sensor, heavy JPEG compression artifacts, visible sensor grain and noise, bad automatic white balance, slightly out of focus, no post-processing, harsh unflattering lighting, candid unposed snapshot, amateur framing, NOT professional photography, NOT studio lighting, NOT cinematic, NOT HDR, NOT retouched, NOT AI-generated looking. The image must look like it was taken by someone who doesn't know how to use a camera.`
 
         const genRes = await fetch(`${LEONARDO_API_BASE}/generations`, {
           method: 'POST',
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             prompt: enhancedPrompt,
             negative_prompt:
-              'cartoon, anime, illustration, painting, drawing, art, cgi, 3d render, perfect skin, professional photography, studio lighting, HDR, oversaturated, fitness model, muscular, athletic',
+              'cartoon, anime, illustration, painting, drawing, art, cgi, 3d render, perfect skin, professional photography, studio lighting, HDR, oversaturated, fitness model, muscular, athletic, cinematic, bokeh, dramatic lighting, golden hour, high quality, 4k, detailed, sharp focus, retouched, airbrushed, beauty, glamour, fashion, magazine, portrait studio, softbox, rim light, beautiful, stunning, masterpiece, best quality',
             modelId: 'de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3',
             width: 1080,
             height: 1920,

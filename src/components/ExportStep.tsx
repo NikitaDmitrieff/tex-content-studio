@@ -26,9 +26,10 @@ import { MultiPlatformAmplifier } from './MultiPlatformAmplifier'
 import { HookLab } from './HookLab'
 import { CommentStormEngine } from './CommentStormEngine'
 import { AudioBriefPanel } from './AudioBriefPanel'
+import { CommentSeedLab } from './CommentSeedLab'
 import { RealityAnchors, ScreeningResult, AudioBrief } from '@/lib/types'
 
-type ActiveTab = 'export' | 'hooklab' | 'engagement' | 'voiceover' | 'reality' | 'amplify' | 'audio'
+type ActiveTab = 'export' | 'hooklab' | 'engagement' | 'seeds' | 'voiceover' | 'reality' | 'amplify' | 'audio'
 
 type PostCaption = {
   hook: string
@@ -270,6 +271,17 @@ export function ExportStep({
           <Sparkles className="w-3.5 h-3.5" />
           Engagement Kit
         </button>
+        <button
+          onClick={() => setActiveTab('seeds')}
+          className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
+            activeTab === 'seeds'
+              ? 'border-emerald-500 text-white'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
+          }`}
+        >
+          <span className="text-xs">🌱</span>
+          Graines
+        </button>
         {story.status === 'complete' && (
           <button
             onClick={() => setActiveTab('voiceover')}
@@ -356,6 +368,11 @@ export function ExportStep({
           existingCaption={caption}
           language={language}
         />
+      )}
+
+      {/* Comment Seed Lab tab */}
+      {activeTab === 'seeds' && (
+        <CommentSeedLab storyId={story.id} emotionalTone={story.emotional_tone} />
       )}
 
       {/* Voiceover Script tab */}
@@ -763,6 +780,16 @@ export function ExportStep({
 
       {/* Navigation shown on engagement tab too */}
       {activeTab === 'engagement' && (
+        <div className="flex justify-between">
+          <button onClick={onBack} className="btn-secondary flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Images
+          </button>
+        </div>
+      )}
+
+      {/* Navigation shown on seeds tab */}
+      {activeTab === 'seeds' && (
         <div className="flex justify-between">
           <button onClick={onBack} className="btn-secondary flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />

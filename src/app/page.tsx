@@ -1,65 +1,190 @@
-import Image from "next/image";
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { Story, STATUS_CONFIG } from '@/lib/types'
+import Link from 'next/link'
+import { Plus, Film, Sparkles, AlertCircle } from 'lucide-react'
+import { NewStoryButton } from '@/components/NewStoryButton'
 
-export default function Home() {
+const DEMO_STORIES: (Story & { scene_count: number; first_image: string | null })[] = [
+  {
+    id: 'demo-1',
+    character_name: 'Frank Delgado',
+    character_age: 54,
+    character_job: 'Long-haul trucker',
+    character_backstory: 'Frank spent 30 years behind the wheel eating gas station food. His knees ache, his back is shot, and he hasn\'t seen his toes in years.',
+    character_physical: 'Heavyset, 5\'10", ruddy complexion, perpetual five o\'clock shadow',
+    emotional_tone: 'comeback',
+    status: 'complete',
+    created_at: '2026-02-20T10:00:00Z',
+    scene_count: 7,
+    first_image: null,
+  },
+  {
+    id: 'demo-2',
+    character_name: 'Diane Huang',
+    character_age: 47,
+    character_job: 'School lunch lady',
+    character_backstory: 'Diane has been serving meals to kids for 15 years but never eats well herself. Her ex-husband always said she\'d never change.',
+    character_physical: 'Short, round-faced, always in a hairnet, tired eyes',
+    emotional_tone: 'revenge',
+    status: 'scenes_ready',
+    created_at: '2026-02-21T14:30:00Z',
+    scene_count: 6,
+    first_image: null,
+  },
+  {
+    id: 'demo-3',
+    character_name: 'Gerald "Big G" Thompson',
+    character_age: 61,
+    character_job: 'Retired postal worker',
+    character_backstory: 'Gerald retired and realized he had nothing to do but sit on his porch. His grandkids run circles around him.',
+    character_physical: 'Tall but stooped, large belly, gray beard, wire-rim glasses',
+    emotional_tone: 'quiet_transformation',
+    status: 'draft',
+    created_at: '2026-02-22T09:15:00Z',
+    scene_count: 0,
+    first_image: null,
+  },
+]
+
+async function getStories(): Promise<(Story & { scene_count: number; first_image: string | null })[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    return DEMO_STORIES
+  }
+
+  const { data: stories, error } = await supabase
+    .from('stories')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error || !stories) {
+    return DEMO_STORIES
+  }
+
+  const storiesWithScenes = await Promise.all(
+    stories.map(async (story: Story) => {
+      const { count } = await supabase!
+        .from('scenes')
+        .select('*', { count: 'exact', head: true })
+        .eq('story_id', story.id)
+
+      const { data: firstScene } = await supabase!
+        .from('scenes')
+        .select('image_url')
+        .eq('story_id', story.id)
+        .order('order_index', { ascending: true })
+        .limit(1)
+        .single()
+
+      return {
+        ...story,
+        scene_count: count ?? 0,
+        first_image: firstScene?.image_url ?? null,
+      }
+    })
+  )
+
+  return storiesWithScenes
+}
+
+export const dynamic = 'force-dynamic'
+
+export default async function Dashboard() {
+  const stories = await getStories()
+  const isDemo = !isSupabaseConfigured
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen px-6 py-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <header className="mb-10">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+                <Film className="w-5 h-5 text-[var(--accent)]" />
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight">Tex Content Studio</h1>
+            </div>
+            <p className="text-zinc-400 text-sm ml-[3.25rem]">
+              TikTok carousel factory for Tex Fitness
+            </p>
+          </div>
+          <NewStoryButton />
+        </div>
+      </header>
+
+      {/* Demo banner */}
+      {isDemo && (
+        <div className="glass-card p-4 mb-8 flex items-start gap-3 border-amber-500/20">
+          <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm text-amber-300 font-medium">Demo Mode</p>
+            <p className="text-xs text-zinc-400 mt-1">
+              Supabase is not configured. Showing sample data. Set{' '}
+              <code className="text-zinc-300 bg-white/5 px-1.5 py-0.5 rounded">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+              <code className="text-zinc-300 bg-white/5 px-1.5 py-0.5 rounded">SUPABASE_SERVICE_ROLE_KEY</code>{' '}
+              in your environment to connect to a real database.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Stories grid */}
+      {stories.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-32 fade-in">
+          <div className="w-20 h-20 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-6">
+            <Sparkles className="w-8 h-8 text-zinc-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-zinc-300 mb-2">No stories yet</h2>
+          <p className="text-zinc-500 text-sm mb-6 max-w-md text-center">
+            Create your first TikTok carousel story. Each story generates a character,
+            builds a transformation arc, creates images, and exports ready-to-post slides.
           </p>
+          <NewStoryButton />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 fade-in">
+          {stories.map((story) => {
+            const statusCfg = STATUS_CONFIG[story.status]
+            return (
+              <Link
+                key={story.id}
+                href={`/story/${story.id}`}
+                className="glass-card glass-card-interactive p-5 block group"
+              >
+                {/* Thumbnail */}
+                <div className="aspect-video rounded-lg bg-white/[0.02] border border-white/[0.05] mb-4 overflow-hidden flex items-center justify-center">
+                  {story.first_image ? (
+                    <img
+                      src={story.first_image}
+                      alt={story.character_name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Film className="w-8 h-8 text-zinc-700" />
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-white group-hover:text-[var(--accent)] transition-colors">
+                    {story.character_name}
+                  </h3>
+                  <span className={`status-badge ${statusCfg.color}`}>
+                    {statusCfg.label}
+                  </span>
+                </div>
+                <p className="text-sm text-zinc-400 mb-3">
+                  {story.character_age}yo {story.character_job}
+                </p>
+                <div className="flex items-center gap-4 text-xs text-zinc-500">
+                  <span>{story.scene_count} scene{story.scene_count !== 1 ? 's' : ''}</span>
+                  <span>{story.emotional_tone.replace(/_/g, ' ')}</span>
+                </div>
+              </Link>
+            )
+          })}
         </div>
-      </main>
+      )}
     </div>
-  );
+  )
 }

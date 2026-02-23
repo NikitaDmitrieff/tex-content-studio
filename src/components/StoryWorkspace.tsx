@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Story, Scene, Character, ScreeningResult } from '@/lib/types'
+import { Story, Scene, Character, ScreeningResult, SwipeMomentumResult } from '@/lib/types'
 import { StepIndicator } from './StepIndicator'
 import { CharacterStep } from './CharacterStep'
 import { StoryArcStep } from './StoryArcStep'
@@ -30,6 +30,7 @@ export function StoryWorkspace({
   const [story, setStory] = useState<Story>(initialStory)
   const [scenes, setScenes] = useState<Scene[]>(initialScenes)
   const [screeningResult, setScreeningResult] = useState<ScreeningResult | null>(null)
+  const [swipeMomentumResult, setSwipeMomentumResult] = useState<SwipeMomentumResult | null>(null)
 
   function handleStoryUpdate(updates: Partial<Story>) {
     setStory((prev) => ({ ...prev, ...updates }))
@@ -76,6 +77,7 @@ export function StoryWorkspace({
             onBack={() => setStep(1)}
             onContinue={() => setStep(3)}
             onScreeningComplete={setScreeningResult}
+            onSwipeAnalysisComplete={setSwipeMomentumResult}
           />
         )}
         {step === 3 && (
@@ -86,6 +88,7 @@ export function StoryWorkspace({
             onScenesUpdate={handleScenesUpdate}
             onBack={() => setStep(2)}
             onContinue={() => setStep(4)}
+            swipeScore={swipeMomentumResult?.overall_score ?? null}
           />
         )}
         {step === 4 && (

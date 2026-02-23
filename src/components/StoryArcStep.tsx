@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Story, Scene, ScanResult, ScreeningResult } from '@/lib/types'
+import { Story, Scene, ScanResult, ScreeningResult, SwipeMomentumResult } from '@/lib/types'
 import {
   ArrowLeft,
   ArrowRight,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { AuthenticityScanner } from './AuthenticityScanner'
 import { AudienceScreeningRoom } from './AudienceScreeningRoom'
+import { SwipeMomentumPanel } from './SwipeMomentumPanel'
 
 export function StoryArcStep({
   story,
@@ -24,6 +25,7 @@ export function StoryArcStep({
   onBack,
   onContinue,
   onScreeningComplete,
+  onSwipeAnalysisComplete,
 }: {
   story: Story
   scenes: Scene[]
@@ -31,6 +33,7 @@ export function StoryArcStep({
   onBack: () => void
   onContinue: () => void
   onScreeningComplete?: (result: ScreeningResult) => void
+  onSwipeAnalysisComplete?: (result: SwipeMomentumResult | null) => void
 }) {
   const [generating, setGenerating] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -39,6 +42,7 @@ export function StoryArcStep({
   const [screeningResult, setScreeningResult] = useState<ScreeningResult | null>(null)
   const [showScreeningRoom, setShowScreeningRoom] = useState(false)
   const [screeningLoading, setScreeningLoading] = useState(false)
+  const [swipeMomentumResult, setSwipeMomentumResult] = useState<SwipeMomentumResult | null>(null)
 
   async function handleGenerate() {
     setGenerating(true)
@@ -434,6 +438,18 @@ export function StoryArcStep({
             Add Scene
           </button>
 
+          {/* Swipe Momentum Analyzer */}
+          <SwipeMomentumPanel
+            scenes={scenes}
+            storyId={story.id}
+            onScenesUpdate={onScenesUpdate}
+            initialResult={swipeMomentumResult}
+            onResultChange={(r) => {
+              setSwipeMomentumResult(r)
+              onSwipeAnalysisComplete?.(r)
+            }}
+          />
+
           {/* Authenticity Scanner */}
           <AuthenticityScanner
             scenes={scenes}
@@ -475,19 +491,26 @@ export function StoryArcStep({
           <ArrowLeft className="w-4 h-4" />
           Back to Character
         </button>
-        <button
-          onClick={onContinue}
-          disabled={scenes.length === 0}
-          className="btn-accent flex items-center gap-2"
-        >
-          {screeningResult && (
-            <span className="text-xs font-semibold opacity-80">
-              Score: {screeningResult.virality_score} →
-            </span>
+        <div className="relative">
+          <button
+            onClick={onContinue}
+            disabled={scenes.length === 0}
+            className="btn-accent flex items-center gap-2"
+          >
+            {screeningResult && (
+              <span className="text-xs font-semibold opacity-80">
+                Score: {screeningResult.virality_score} →
+              </span>
+            )}
+            Continue to Images
+            <ArrowRight className="w-4 h-4" />
+          </button>
+          {swipeMomentumResult && swipeMomentumResult.overall_score < 70 && (
+            <p className="absolute -bottom-5 right-0 text-[10px] text-amber-400 whitespace-nowrap">
+              ⚠ Low completion risk detected
+            </p>
           )}
-          Continue to Images
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        </div>
       </div>
 
       {/* Audience Screening Room modal */}

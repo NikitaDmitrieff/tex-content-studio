@@ -21,6 +21,7 @@ export function ImageGenerationStep({
   onScenesUpdate,
   onBack,
   onContinue,
+  swipeScore: _swipeScore,
 }: {
   story: Story
   scenes: Scene[]
@@ -28,6 +29,7 @@ export function ImageGenerationStep({
   onScenesUpdate: (scenes: Scene[]) => void
   onBack: () => void
   onContinue: () => void
+  swipeScore?: number | null
 }) {
   const [statuses, setStatuses] = useState<Record<string, GenerationStatus>>(() => {
     const initial: Record<string, GenerationStatus> = {}

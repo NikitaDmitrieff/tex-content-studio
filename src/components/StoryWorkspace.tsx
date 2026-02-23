@@ -8,7 +8,7 @@ import { StoryArcStep } from './StoryArcStep'
 import { ImageGenerationStep } from './ImageGenerationStep'
 import { ExportStep } from './ExportStep'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Eye } from 'lucide-react'
 
 const STEPS = [
   { number: 1, label: 'Character' },
@@ -46,13 +46,31 @@ export function StoryWorkspace({
   return (
     <div className="fade-in">
       {/* Back navigation */}
-      <Link
-        href={backHref}
-        className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        {backLabel}
-      </Link>
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          href={backHref}
+          className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {backLabel}
+        </Link>
+
+        {/* Preview button — shown once story arc is generated (step 2+) */}
+        {step >= 2 && scenes.length > 0 && !story.id.startsWith('demo-') && !story.id.startsWith('new-') && (
+          <Link
+            href={`/stories/${story.id}/preview`}
+            className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-xl transition-colors"
+            style={{
+              background: 'rgba(109,90,255,0.12)',
+              border: '1px solid rgba(109,90,255,0.3)',
+              color: '#8577ff',
+            }}
+          >
+            <Eye className="w-3.5 h-3.5" />
+            Preview
+          </Link>
+        )}
+      </div>
 
       {/* Step indicator */}
       <div className="mb-8">

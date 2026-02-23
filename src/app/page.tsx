@@ -1,7 +1,7 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { Story, STATUS_CONFIG } from '@/lib/types'
 import Link from 'next/link'
-import { Plus, Film, Sparkles, AlertCircle, Calendar, Users } from 'lucide-react'
+import { Plus, Film, Sparkles, AlertCircle, Calendar, Users, Eye } from 'lucide-react'
 import { NewStoryButton } from '@/components/NewStoryButton'
 
 const DEMO_STORIES: (Story & { scene_count: number; first_image: string | null })[] = [
@@ -233,6 +233,15 @@ export default async function Dashboard() {
                 <div className="flex items-center gap-4 text-xs text-zinc-500 flex-wrap relative z-[1]">
                   <span className="pointer-events-none">{story.scene_count} scene{story.scene_count !== 1 ? 's' : ''}</span>
                   <span className="pointer-events-none">{story.emotional_tone.replace(/_/g, ' ')}</span>
+                  {story.scene_count > 0 && !story.id.startsWith('demo-') && (
+                    <Link
+                      href={`/stories/${story.id}/preview`}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-zinc-400 hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition-colors z-[2] relative"
+                    >
+                      <Eye className="w-2.5 h-2.5" />
+                      Quick Preview
+                    </Link>
+                  )}
                   {story.character_id && story.character_name_for_link && (
                     <Link
                       href={`/characters/${story.character_id}`}

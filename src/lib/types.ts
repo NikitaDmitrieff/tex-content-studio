@@ -23,6 +23,7 @@ export type Story = {
   is_reality_grounded?: boolean
   selected_hook?: string | null
   hook_variants?: HookWithScoring[] | null
+  comment_intelligence?: CommentIntelligence | null
 }
 
 export type Character = {
@@ -192,6 +193,53 @@ export type HookWithScoring = {
   hook: HookVariant
   persona_scores: HookPersonaScore[]
   scroll_stop_score: number
+}
+
+export type CommentClassification = {
+  believers: number
+  skeptics: number
+  question_askers: number
+  emotional: number
+  tag_friends: number
+}
+
+export type CommentTopQuotes = {
+  believers: string[]
+  skeptics: string[]
+  question_askers: string[]
+}
+
+export type TensionAnalysis = {
+  primary_debate: string
+  burning_question: string
+  viral_signal: string
+  sequel_potential_score: number
+}
+
+export type CommentIntelligence = {
+  classification: CommentClassification
+  top_quotes: CommentTopQuotes
+  tension_analysis: TensionAnalysis
+}
+
+export type SequelCommentDriver =
+  | 'skeptics'
+  | 'question_askers'
+  | 'emotional_amp'
+  | 'believers'
+  | 'setup_part3'
+
+export type SequelScene = {
+  description: string
+  emotional_beat: string
+  visual_prompt: string
+  comment_driver: SequelCommentDriver
+}
+
+export type SequelBlueprint = {
+  scenes: SequelScene[]
+  sequel_hook: string
+  sequel_emotional_tone: EmotionalTone
 }
 
 export const STATUS_CONFIG: Record<StoryStatus, { label: string; color: string }> = {

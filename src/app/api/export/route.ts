@@ -66,9 +66,25 @@ async function downloadAndProcessImage(
   return outputBuffer
 }
 
+type AudioBriefExport = {
+  bpm_range: string
+  mood_arc: string
+  genre_tags: string[]
+  french_affinity_score: number
+  universal_score: number
+  song_suggestions: Array<{
+    artist: string
+    track: string
+    mood_match_score: number
+    why_it_fits: string
+    tiktok_search_term: string
+  }>
+}
+
 export async function POST(request: NextRequest) {
   let body: {
     story_id: string
+    audio_brief?: AudioBriefExport | null
     scenes?: Array<{
       id: string
       order_index: number
@@ -86,7 +102,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { story_id } = body
+  const { story_id, audio_brief } = body
   let scenes = body.scenes
 
   if (!scenes || scenes.length === 0) {
@@ -160,6 +176,34 @@ export async function POST(request: NextRequest) {
       )
       .join('\n\n')
     zip.file('captions.txt', captions)
+
+    // Include audio brief files if provided
+    if (audio_brief) {
+      zip.file('audio-guide.json', JSON.stringify(audio_brief, null, 2))
+
+      const audioTxt = [
+        '=== AUDIO BRIEF ===',
+        '',
+        `BPM Range: ${audio_brief.bpm_range}`,
+        `Mood Arc:  ${audio_brief.mood_arc}`,
+        `Genres:    ${audio_brief.genre_tags.join(', ')}`,
+        `French Affinity Score: ${Math.round(audio_brief.french_affinity_score * 100)}%`,
+        `Universal Score:       ${Math.round(audio_brief.universal_score * 100)}%`,
+        '',
+        '=== SONG SUGGESTIONS ===',
+        '',
+        ...audio_brief.song_suggestions.map((s, i) =>
+          [
+            `${i + 1}. ${s.track} — ${s.artist}`,
+            `   Mood Match: ${Math.round(s.mood_match_score * 100)}%`,
+            `   Why it fits: ${s.why_it_fits}`,
+            `   TikTok search: ${s.tiktok_search_term}`,
+            '',
+          ].join('\n')
+        ),
+      ].join('\n')
+      zip.file('audio-guide.txt', audioTxt)
+    }
 
     const zipArrayBuffer = await zip.generateAsync({
       type: 'arraybuffer',

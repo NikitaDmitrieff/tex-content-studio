@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Film, Users } from 'lucide-react'
+import { Film, Users, BarChart2 } from 'lucide-react'
 
 export function Navigation() {
   const pathname = usePathname()
@@ -28,6 +28,17 @@ export function Navigation() {
           >
             <Film className="w-3.5 h-3.5" />
             Stories
+          </Link>
+          <Link
+            href="/intelligence"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              pathname.startsWith('/intelligence')
+                ? 'bg-white/[0.08] text-white'
+                : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+            }`}
+          >
+            <BarChart2 className="w-3.5 h-3.5" />
+            Intelligence
           </Link>
           <Link
             href="/characters"

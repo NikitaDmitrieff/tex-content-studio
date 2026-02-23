@@ -1,7 +1,7 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { Story, STATUS_CONFIG } from '@/lib/types'
 import Link from 'next/link'
-import { Plus, Film, Sparkles, AlertCircle, Calendar, Users, Eye } from 'lucide-react'
+import { Film, Sparkles, AlertCircle, Calendar, Users, Eye, BarChart2, ArrowRight } from 'lucide-react'
 import { NewStoryButton } from '@/components/NewStoryButton'
 
 const DEMO_STORIES: (Story & { scene_count: number; first_image: string | null })[] = [
@@ -153,6 +153,28 @@ export default async function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Intelligence Snapshot */}
+      <div className="glass-card p-5 mb-8 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-9 h-9 rounded-xl bg-[var(--accent)]/15 flex items-center justify-center shrink-0">
+            <BarChart2 className="w-4 h-4 text-[var(--accent)]" />
+          </div>
+          <div>
+            <p className="text-xs text-zinc-500 font-mono mb-0.5">TOP FORMULA</p>
+            <p className="text-sm font-semibold text-white">
+              Comeback × Transport × 30j Défi = <span className="text-orange-400">9.2/10 avg</span>
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/intelligence"
+          className="flex items-center gap-1.5 text-sm text-[var(--accent)] hover:text-[var(--accent-hover)] font-medium shrink-0 transition-colors"
+        >
+          Go to Intelligence
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
 
       {/* Stories grid */}
       {stories.length === 0 ? (

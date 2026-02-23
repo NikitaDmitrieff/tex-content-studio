@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { Story, Scene } from '@/lib/types'
 import {
-  ArrowLeft,
-  ArrowRight,
   ImageIcon,
   RefreshCw,
   Sparkles,
@@ -19,16 +17,12 @@ export function ImageGenerationStep({
   scenes,
   visualDna,
   onScenesUpdate,
-  onBack,
-  onContinue,
   swipeScore,
 }: {
   story: Story
   scenes: Scene[]
   visualDna?: string | null
   onScenesUpdate: (scenes: Scene[]) => void
-  onBack: () => void
-  onContinue: () => void
   swipeScore?: number | null
 }) {
   const [statuses, setStatuses] = useState<Record<string, GenerationStatus>>(() => {
@@ -257,21 +251,6 @@ export function ImageGenerationStep({
         })}
       </div>
 
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <button onClick={onBack} className="btn-secondary flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Story Arc
-        </button>
-        <button
-          onClick={onContinue}
-          disabled={!allDone && doneCount === 0}
-          className="btn-accent flex items-center gap-2"
-        >
-          Continue to Export
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
     </div>
   )
 }

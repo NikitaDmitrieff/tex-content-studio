@@ -1,51 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { GoogleGenAI } from '@google/genai'
+import sharp from 'sharp'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
-const LEONARDO_API_BASE = 'https://cloud.leonardo.ai/api/rest/v1'
+const STORAGE_BUCKET = 'generated-images'
 
-async function pollForGeneration(
-  generationId: string,
-  apiKey: string,
-  maxAttempts: number = 30,
-  intervalMs: number = 5000
-): Promise<string[]> {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    await new Promise((resolve) => setTimeout(resolve, intervalMs))
+/**
+ * Degrade image quality with Sharp to look like a real phone photo:
+ * - Downscale to 720p then back up (kills sharpness)
+ * - Gaussian blur
+ * - Desaturate colors
+ * - Add noise via overlay
+ * - Crush to low-quality JPEG
+ */
+async function degradeImage(pngBuffer: Buffer): Promise<Buffer> {
+  // Step 1: Downscale to 540px wide (kills fine detail), then back to 1080
+  const downscaled = await sharp(pngBuffer)
+    .resize(540, 960, { fit: 'cover' })
+    .jpeg({ quality: 55 })
+    .toBuffer()
 
-    const res = await fetch(`${LEONARDO_API_BASE}/generations/${generationId}`, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
+  // Step 2: Scale back up (introduces softness), apply blur, crush colors
+  const degraded = await sharp(downscaled)
+    .resize(1080, 1920, { fit: 'cover', kernel: 'nearest' })
+    .blur(1.8)
+    .modulate({
+      saturation: 0.7,  // wash out colors
+      brightness: 1.05,  // slightly overexposed
+    })
+    .gamma(1.8)  // flatten the contrast
+    .jpeg({ quality: 45, chromaSubsampling: '4:2:0' })  // heavy JPEG compression
+    .toBuffer()
+
+  return degraded
+}
+
+async function uploadToSupabase(
+  imageBuffer: Buffer,
+  fileName: string
+): Promise<string | null> {
+  if (!isSupabaseConfigured || !supabase) return null
+
+  const { error: uploadError } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(fileName, imageBuffer, {
+      contentType: 'image/jpeg',
+      upsert: true,
     })
 
-    if (!res.ok) continue
-
-    const data = await res.json()
-    const generation = data.generations_by_pk
-
-    if (generation?.status === 'COMPLETE') {
-      return generation.generated_images.map(
-        (img: { url: string }) => img.url
-      )
-    }
-
-    if (generation?.status === 'FAILED') {
-      throw new Error('Leonardo generation failed')
-    }
+  if (uploadError) {
+    console.error('Supabase upload error:', uploadError)
+    return null
   }
 
-  throw new Error('Leonardo generation timed out')
+  const { data } = supabase.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(fileName)
+
+  return data.publicUrl
 }
 
 export async function POST(request: NextRequest) {
-  const apiKey = process.env.LEONARDO_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
 
   let body: {
     visual_prompts: string[]
     character_physical: string
     scene_ids: string[]
     visual_dna?: string
+    custom_directions?: (string | null)[]
   }
 
   try {
@@ -54,7 +77,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { visual_prompts, character_physical, scene_ids, visual_dna } = body
+  const { visual_prompts, character_physical, scene_ids, visual_dna, custom_directions } = body
 
   if (!visual_prompts || !Array.isArray(visual_prompts) || !scene_ids) {
     return NextResponse.json(
@@ -71,54 +94,66 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       images: placeholderImages,
-      note: 'LEONARDO_API_KEY not configured. Returning placeholder images.',
+      note: 'GEMINI_API_KEY not configured. Returning placeholder images.',
     })
   }
+
+  const ai = new GoogleGenAI({ apiKey })
 
   try {
     const results = await Promise.allSettled(
       visual_prompts.map(async (prompt, index) => {
-        const promptWithDna = visual_dna ? `${visual_dna}, ${prompt}` : prompt
-        const enhancedPrompt = `${promptWithDna}. Character: ${character_physical}. MANDATORY STYLE: shot on cheap 2015 Android phone, low megapixel sensor, heavy JPEG compression artifacts, visible sensor grain and noise, bad automatic white balance, slightly out of focus, no post-processing, harsh unflattering lighting, candid unposed snapshot, amateur framing, NOT professional photography, NOT studio lighting, NOT cinematic, NOT HDR, NOT retouched, NOT AI-generated looking. The image must look like it was taken by someone who doesn't know how to use a camera.`
+        const dnaPrefix = visual_dna ? `${visual_dna}, ` : ''
+        const customDir = custom_directions?.[index]
+        const customSuffix = customDir ? ` Additional direction: ${customDir}.` : ''
+        // Strip overly specific props from the visual prompt
+        const cleanedPrompt = prompt
+          .replace(/uber\s*eats\s*(thermal\s*)?bag\s*(visible\s*)?(on\s*\w+\s*seat\s*)?/gi, '')
+          .replace(/delivery\s*bag/gi, '')
+          .replace(/,\s*,/g, ',')
+          .trim()
 
-        const genRes = await fetch(`${LEONARDO_API_BASE}/generations`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
+        const enhancedPrompt = `A normal everyday scene: ${cleanedPrompt}. The person looks like: ${character_physical}. ${dnaPrefix}The setting is completely normal and mundane — a regular apartment, street, or room. Nothing special. The lighting is just whatever ceiling light or window was there. The person is not posing.${customSuffix}`
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: enhancedPrompt,
+          config: {
+            imageConfig: {
+              aspectRatio: '9:16',
+            },
           },
-          body: JSON.stringify({
-            prompt: enhancedPrompt,
-            negative_prompt:
-              'cartoon, anime, illustration, painting, drawing, art, cgi, 3d render, perfect skin, professional photography, studio lighting, HDR, oversaturated, fitness model, muscular, athletic, cinematic, bokeh, dramatic lighting, golden hour, high quality, 4k, detailed, sharp focus, retouched, airbrushed, beauty, glamour, fashion, magazine, portrait studio, softbox, rim light, beautiful, stunning, masterpiece, best quality',
-            modelId: 'de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3',
-            width: 1080,
-            height: 1920,
-            num_images: 1,
-            alchemy: true,
-            contrast: 3.5,
-          }),
         })
 
-        if (!genRes.ok) {
-          const errText = await genRes.text()
-          throw new Error(`Leonardo API error: ${genRes.status} ${errText}`)
+        const candidate = response.candidates?.[0]
+        if (!candidate?.content?.parts) {
+          throw new Error('No content in Gemini response')
         }
 
-        const genData = await genRes.json()
-        const generationId =
-          genData.sdGenerationJob?.generationId || genData.sdGenerationJob?.apiCreditCost
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const imagePart = candidate.content.parts.find((part: any) => part.inlineData)
 
-        if (!genData.sdGenerationJob?.generationId) {
-          throw new Error('No generation ID returned from Leonardo')
+        if (!imagePart?.inlineData?.data) {
+          throw new Error('No image data in Gemini response')
         }
 
-        const imageUrls = await pollForGeneration(
-          genData.sdGenerationJob.generationId,
-          apiKey
-        )
+        // Get the raw image from Gemini
+        const rawBuffer = Buffer.from(imagePart.inlineData.data, 'base64')
 
-        const imageUrl = imageUrls[0] || null
+        // Degrade it with Sharp to look like a real phone photo
+        const degradedBuffer = await degradeImage(rawBuffer)
+
+        let imageUrl: string | null = null
+
+        // Upload degraded JPEG to Supabase Storage
+        const fileName = `scenes/${scene_ids[index]}-${Date.now()}.jpg`
+        imageUrl = await uploadToSupabase(degradedBuffer, fileName)
+
+        // Fallback to data URL if storage upload fails
+        if (!imageUrl) {
+          const base64Degraded = degradedBuffer.toString('base64')
+          imageUrl = `data:image/jpeg;base64,${base64Degraded}`
+        }
 
         if (imageUrl && isSupabaseConfigured && supabase) {
           await supabase
@@ -130,7 +165,6 @@ export async function POST(request: NextRequest) {
         return {
           scene_id: scene_ids[index],
           image_url: imageUrl,
-          generation_id: generationId,
         }
       })
     )

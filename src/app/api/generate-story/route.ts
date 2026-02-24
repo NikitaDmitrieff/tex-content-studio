@@ -46,49 +46,49 @@ export async function POST(request: NextRequest) {
   if (!apiKey) {
     const fallbackScenes = [
       {
-        description: `${character.age} ans. Je pouvais plus lacer mes chaussures.`,
+        description: `${character.age} ans et je monte plus les escaliers`,
         emotional_beat: 'Hook',
-        visual_prompt: `${character.physical_description}, struggling to bend over, living room floor, shot on old phone camera 2015 Android quality, grainy sensor noise, harsh overhead lighting, unflattering angle, compression artifacts`,
+        visual_prompt: `${character.physical_description}, sitting on couch in messy living room`,
       },
       {
-        description: `4h30. Monster Energy au petit-dej. Encore.`,
+        description: `monster energy au petit-dej tous les jours`,
         emotional_beat: 'Mundane routine',
-        visual_prompt: `Dimly lit kitchen, energy drink cans and fast food wrappers, ${character.physical_description}, eating alone, early morning, shot on old phone, harsh fluorescent lighting, grainy, slightly blurry, low resolution`,
+        visual_prompt: `${character.physical_description} eating alone in dimly lit kitchen, energy drink on table`,
       },
       {
-        description: `Photos de famille a Paques. J'ai demande qu'on me tague pas.`,
+        description: `jai demande quon me tague pas sur les photos`,
         emotional_beat: 'Self-awareness',
-        visual_prompt: `${character.physical_description} looking at phone screen alone on couch, shot on 2015 Android phone, grainy sensor noise, slightly out of focus, bad indoor lighting, compression artifacts`,
+        visual_prompt: `${character.physical_description} looking at phone alone on couch, messy apartment`,
       },
       {
-        description: `Ma fille m'a dit "c'est pas grave papy." Je suis son pere.`,
+        description: `ma fille ma dit "cest pas grave papa"`,
         emotional_beat: 'Breaking point',
-        visual_prompt: `${character.physical_description} sitting alone on park bench head down, child blurred in background, shot on old phone camera, overexposed sky, grainy, motion blur, muted washed out colors`,
+        visual_prompt: `${character.physical_description} sitting alone on park bench, overcast day`,
       },
       {
-        description: `Telecharge un truc a 2h du mat. J'ai pas supprime.`,
+        description: `telecharge un truc a 2h du mat`,
         emotional_beat: 'Discovery',
-        visual_prompt: `${character.physical_description} in bed at night, phone screen glowing on face, dark room, shot on old phone camera, only phone light, heavy grain, slightly blurry, compression artifacts`,
+        visual_prompt: `${character.physical_description} in bed at night, phone screen glowing on face, dark room`,
       },
       {
-        description: `Premier entrainement. 4 minutes. J'ai cru mourir.`,
+        description: `premier entrainement 4 minutes`,
         emotional_beat: 'Early struggle',
-        visual_prompt: `${character.physical_description} sitting on kitchen floor sweaty exhausted red-faced, messy apartment, shot on old Android phone, harsh flash, grainy, slightly blurry, bad composition`,
+        visual_prompt: `${character.physical_description} sitting on kitchen floor sweaty and exhausted`,
       },
       {
-        description: `Semaine 3. Prepare mon dejeuner pour la premiere fois en 10 ans.`,
+        description: `je prepare mon dej pour la premiere fois`,
         emotional_beat: 'Small wins',
-        visual_prompt: `${character.physical_description} in kitchen making a sandwich, small smile, shot on old phone, fluorescent lighting, grainy sensor noise, slightly overexposed, candid`,
+        visual_prompt: `${character.physical_description} slightly better posture, in kitchen making food, small smile`,
       },
       {
-        description: `2 mois. La balance a pas bouge. Mais je lace mes chaussures.`,
+        description: `la balance a pas bouge mais je lace mes chaussures`,
         emotional_beat: 'Quiet progress',
-        visual_prompt: `${character.physical_description} slightly healthier posture at work, shot on old phone camera, office fluorescent lighting, compression artifacts, grainy, candid unposed`,
+        visual_prompt: `${character.physical_description} slightly more toned arms, leaner face, tying shoes in hallway`,
       },
       {
-        description: `Premier selfie en 3 ans que j'ai pas supprime direct.`,
+        description: `premier selfie en 3 ans`,
         emotional_beat: 'Transformation',
-        visual_prompt: `${character.physical_description} but slightly transformed, dirty mirror selfie, finger partially visible, shot on old phone, bathroom lighting, grainy, genuine half-smile, not professional`,
+        visual_prompt: `${character.physical_description} noticeably fitter build, slightly more muscular arms, better posture, dirty bathroom mirror selfie, genuine half-smile`,
       },
     ]
 
@@ -155,7 +155,7 @@ ${arc_template_used ? `Arc template: "${arc_template_used}" — honor the shape 
 4. I find something on my phone. DO NOT name any app or brand. Say "this app" or "this thing" — like someone casually mentioning it. It's not the hero of the story, I am. One sentence max on this.
 5-6. Early days are brutal. Show specific failures. Specific small wins. The boring middle that nobody talks about.
 7-8. Things start shifting. Not overnight. Slowly. Clothes fit different. I sleep better. People notice but I pretend I don't notice them noticing.
-9-10. Where I am now. Not a transformation ad. Just... different. Better. Still me.`
+9-10. Where I am now. Visibly changed — not bodybuilder, but clearly fitter. Arms a bit bigger, posture better, face leaner. The kind of change people comment on. Still me, just a better version.`
 
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -165,6 +165,17 @@ ${arc_template_used ? `Arc template: "${arc_template_used}" — honor the shape 
           role: 'user',
           content: `Write a 7-10 slide TikTok photo carousel. First person. The narrator IS the character below.${sequelContext}${realityContext}${heartbeatConstraint}
 
+LANGUAGE — CRITICAL:
+- ALL slide descriptions MUST be written in FRENCH. Natural, casual spoken French. The kind of French a normal 19-year-old actually speaks — not literary, but not forced slang either.
+- all lowercase. No capital letters except proper nouns (McDo, PSG, Netflix).
+- NO PERIODS at the end of sentences. Sentences just end without punctuation.
+- Write CORRECT French with casual shortcuts. "je suis" can become "jsuis", "je peux" can become "jpeux" — but ONLY if it sounds natural. Don't contract every single word.
+- ALMOST NO SLANG. Real young French people in normal conversation don't spam slang. One "genre" or "trop" per carousel is enough. ZERO "frr", "sah", "wsh", "ptdr", "en mode".
+- Use "..." sparingly for trailing thoughts.
+- French brand references are good: McDo, Picard, Carrefour, kebab, BN, Kinder
+- French cultural references: la salle, le RER, la cantine, les courses
+- The visual_prompt stays in ENGLISH (for the image generation AI)
+
 CHARACTER:
 ${character.name}, ${character.age}, ${character.job}
 Backstory: ${character.backstory}
@@ -173,39 +184,58 @@ Look: ${character.physical_description}
 TONE: ${emotional_tone} — ${toneGuide}
 
 VOICE RULES — this is the most important part:
-- Write like a REAL person typing on their phone. Not a writer. Not AI.
-- Use fragments. Run-ons. Start sentences with "And" or "But". Leave thoughts hanging with "..."
-- Include hyper-specific details: brand names of junk food, exact times ("3:47 AM"), body parts that hurt, specific coworker moments, real-sounding places
-- BANNED PHRASES (these scream AI): "little did I know", "something shifted", "I found myself", "game-changer", "needless to say", "fast forward", "plot twist", "here's the thing", "journey", "that's when everything changed"
-- Keep it messy. Real people contradict themselves. They joke in dark moments. They downplay big things.
-- Use casual punctuation: "idk", "lol", "ngl", "tbh" sparingly — like a real person would
+- Write like a real person talking to a friend. Simple words. Short thoughts.
+- Include specific details: exact times ("4h30"), real brands (Monster, McDo), body parts, places
+- BANNED PHRASES (these scream AI): "ce jour-là tout a changé", "j'ai compris que", "le déclic", "un tournant", "sans le savoir", "mon parcours", "une prise de conscience", "j'ai réalisé que", "ça m'a ouvert les yeux"
+- BANNED STYLE: proper capitalization, literary tone, overly slangy tone
+- Keep it simple and honest. Not dramatic. Not poetic. Just someone saying what happened.
 
-TEXT LENGTH — CRITICAL:
-- Each slide description MUST be very short. MAX 2 sentences. Most slides should be 1 sentence.
-- This text gets overlaid on the image. People swipe fast. They do NOT read paragraphs.
-- Think TikTok carousel: punchy, raw, 8-15 words per slide is ideal. Never exceed 25 words.
-- Examples of good length: "4:30 AM. Monster Energy for breakfast. Again." or "My daughter said 'it's okay grandpa.' I'm her dad."
-- If it feels too long, cut it in half. Then cut it again.
+COHERENCE — CRITICAL:
+- Every caption MUST be a sentence that a real French person would understand immediately. No ambiguity.
+- If you read it and it sounds weird or unclear, rewrite it. Simple French > clever French.
+- BAD: "jpense plus au canape", "sans viser les arbres ca devient normal" — nobody talks like this
+- GOOD: "je mange seul tous les soirs depuis 6 mois", "ma mere ma appele et jai pas decroche", "je fais 10 pompes et je tremble"
+- Test: could you say this sentence out loud to a French friend and they'd understand instantly? If not, simplify it.
+
+TEXT LENGTH — THE MOST IMPORTANT RULE:
+- MAXIMUM 10 words per slide. Aim for 5-8 words. This is non-negotiable.
+- ONE sentence only. Never two. If you wrote two sentences, delete one.
+- People swipe in 1 second. They read 5 words. Write for that.
+- GOOD lengths: "je mange seul depuis 6 mois" (6 words), "premier entrainement 4 minutes" (4 words), "ma mere ma reconnu" (4 words)
+- BAD: anything over 10 words. If it's too long, cut words until it fits.
+- all lowercase. no periods at the end.
 
 ${storyFlowPrompt}
 
-SLIDE 1 MUST be a scroll-stopping hook. Something like "I was 54 and couldn't tie my own shoes" or "Nobody tells you what rock bottom smells like." Make it visceral and specific.
+SLIDE 1 MUST be a scroll-stopping hook IN FRENCH, all lowercase, no period. Short and specific. Examples: "22 ans et je monte plus les escaliers" or "je mange seul depuis 6 mois" — one clear image, max 8 words.
 
-${!isSequel ? 'THE APP MENTION: Maximum ONE slide can reference finding an app. It should feel throwaway — "downloaded this app at like 2am, honestly didn\'t think I\'d open it again." The story is about the PERSON, not the product. The app is just a tool they happened to find.' : ''}
+${!isSequel ? 'THE APP MENTION: Maximum ONE slide can reference finding an app. Keep it casual and short — "telecharge un truc a 2h du mat" — the story is about the person, not the product.' : ''}
 
-VISUAL PROMPT RULES — CRITICAL FOR REALISM:
-- Every visual_prompt MUST enforce: "shot on old phone camera, 2015 Android quality, slightly blurry, bad lighting, grainy sensor noise, compression artifacts, low resolution feel, NOT professional photography, NOT studio lighting, NOT HDR, NOT AI-generated"
-- Think: screenshots from a security camera, a drunk selfie, a hastily taken photo in bad lighting
-- Include character physical description in every prompt
-- NEVER use words like: "cinematic", "dramatic lighting", "golden hour", "bokeh", "professional", "high quality", "detailed", "beautiful", "stunning"
-- Add imperfections: "slightly overexposed", "harsh flash", "fluorescent lighting", "motion blur", "finger partially blocking lens", "dirty mirror selfie"
+VISUAL PROMPT RULES — CRITICAL FOR REALISM (keep visual prompts in ENGLISH):
+- Every visual_prompt describes what a friend would see if they quickly snapped a photo of this person in that moment.
+- Include character physical description in every prompt.
+- PHYSICAL PROGRESSION IS IMPORTANT: The character's body should visibly change across the carousel.
+  - Slides 1-4: Use the original physical description as-is (soft, out of shape, tired-looking).
+  - Slides 5-6: Subtle change — slightly better posture, a bit less puffy in the face.
+  - Slides 7-10: Noticeable improvement — arms slightly more toned, shoulders a bit wider, face leaner, overall fitter build. NOT a bodybuilder — just someone who clearly works out now. Think "3-4 months of consistent gym" difference.
+  - Add these physical changes directly in the visual_prompt text (e.g. "slightly more muscular arms", "leaner face", "better posture, fitter build").
+- Describe the SCENE and LOCATION only. Do NOT describe camera style or quality — the image model handles that.
+- VARIETY IS KEY: The character has a life outside their job. Most scenes should NOT show them at work or with work props.
+  - If someone is an Uber Eats driver, maybe 1 out of 10 scenes shows that. The rest show them at home, with friends, at the store, on the bus, in their room, eating, scrolling phone, etc.
+  - DO NOT put the same prop (delivery bag, uniform, work tool) in multiple scenes. Real people's camera rolls are diverse.
+- NORMAL MUNDANE SETTINGS ONLY. The #1 priority is that the location looks like a real place where a normal person lives.
+  - GOOD: "sitting on his bed in a small messy bedroom", "in the kitchen eating alone", "on the bus looking at his phone", "bathroom mirror selfie", "sitting on stairs outside his building", "on the couch watching TV", "walking down a boring suburban street"
+  - BAD: "standing in the middle of a street at golden hour", "walking dramatically with delivery bag", "centered in frame looking into distance" — this is movie shit, not real life
+- Keep visual prompts SHORT. Just: where they are + what they're doing. Nothing about camera, lighting, or quality.
+- NEVER mention the character's job props unless it's the ONE scene about work. No delivery bags, no uniforms, no work tools in random scenes.
+- NEVER use: "cinematic", "dramatic", "golden hour", "bokeh", "professional", "beautiful", "stunning", "portrait", "shallow depth of field", "cracked screen", "compression artifacts"
 
 Respond ONLY with a JSON array (no markdown, no code fences):
 [
   {
-    "description": "Slide text — MAX 2 sentences, 8-15 words ideal, overlay-friendly",
-    "emotional_beat": "2-4 word beat label",
-    "visual_prompt": "Old phone camera photo — must include character physical description and phone camera imperfections"
+    "description": "Slide text IN FRENCH — MAX 10 words, one sentence, all lowercase, no period",
+    "emotional_beat": "2-4 word beat label (in English for internal use)",
+    "visual_prompt": "Scene description IN ENGLISH — include character physical description, describe location and action only"
   }
 ]`,
         },

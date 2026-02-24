@@ -6,7 +6,7 @@ TikTok carousel content factory for [Tex Fitness](https://github.com/NikitaDmitr
 
 1. **Character** — AI generates a relatable, everyday character (trucker, lunch lady, postal worker) with a backstory and physical description
 2. **Story Arc** — AI creates a 6-8 scene transformation journey with emotional beats and visual prompts
-3. **Images** — Leonardo.AI generates candid phone-style portrait images for each scene
+3. **Images** — Nano Banana (Gemini 2.5 Flash Image) generates candid phone-style portrait images for each scene
 4. **Export** — Download a zip with processed slides (1080x1920), captions, voiceover script, and hashtags
 
 ## Tech Stack
@@ -14,7 +14,7 @@ TikTok carousel content factory for [Tex Fitness](https://github.com/NikitaDmitr
 - **Next.js 15** (App Router, TypeScript, Tailwind CSS 4)
 - **Supabase** (PostgreSQL, `tex_content` schema)
 - **Claude API** (character + story generation via `@anthropic-ai/sdk`)
-- **Leonardo.AI** (portrait image generation, photoReal v2)
+- **Nano Banana** (Gemini 2.5 Flash Image via `@google/genai`)
 - **Sharp** (image resize + caption overlay)
 - **JSZip** (carousel packaging)
 
@@ -38,7 +38,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # AI APIs
 ANTHROPIC_API_KEY=sk-ant-...
-LEONARDO_API_KEY=your-leonardo-key
+GEMINI_API_KEY=your-gemini-api-key
 ```
 
 ## Database Setup

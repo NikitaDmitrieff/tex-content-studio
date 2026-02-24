@@ -53,17 +53,17 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({
       character: {
-        name: 'Maria Santos',
+        name: 'Samira Belkacem',
         age: 42,
-        job: 'Hospital receptionist',
-        backstory: `Based on a real journey: ${journeyText}. Maria finally decided enough was enough after years of putting everyone else first.`,
+        job: 'Secrétaire médicale',
+        backstory: `Basé sur un vrai parcours : ${journeyText}. Samira en a eu marre de toujours passer après les autres. Deux gosses, un ex qui payait jamais la pension, et un boulot assis 9h par jour à grignoter des BN.`,
         physical_description:
-          'Medium height, carrying extra weight from years of desk work, tired eyes, practical clothes for long shifts',
-        personality_traits: ['Determined', 'Quietly stubborn', 'Protective of her family'],
+          'Taille moyenne, en surpoids après des années de travail de bureau, yeux fatigués, toujours en blouse pratique',
+        personality_traits: ['Déterminée', 'Têtue en silence', 'Protectrice avec ses proches'],
         reason_never_exercised:
-          "Two jobs and three kids — there was never a right time. Until there was.",
+          "Deux boulots et trois gosses — y'avait jamais le bon moment. Jusqu'au jour où elle a craqué.",
         visual_dna:
-          'same heavyset woman, early 40s, dark hair pulled back, tired but determined expression, warm natural light, candid smartphone photo quality',
+          'same heavyset woman, early 40s, dark hair pulled back, tired but determined expression, harsh indoor lighting, low quality phone camera, grainy',
       },
       reality_anchors: demoAnchors,
       id: `new-${Date.now()}`,
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
   try {
     const client = new Anthropic({ apiKey })
 
-    const prompt = `A real person wants to turn their genuine transformation story into a TikTok carousel. Your job is to invent a FICTIONAL character that preserves ALL the real details but protects the creator's identity.
+    const prompt = `A real person wants to turn their genuine transformation story into a TikTok carousel for a FRENCH audience. Your job is to invent a FICTIONAL FRENCH character that preserves ALL the real details but protects the creator's identity.
 
 REAL DATA PROVIDED:
 - Journey: ${journeyText}
@@ -89,28 +89,38 @@ PRIVACY MODIFICATIONS TO APPLY:
 ${privacyNotes.length > 0 ? privacyNotes.map((n) => `- ${n}`).join('\n') : '- None requested — keep demographics realistic but invent name/face/city'}
 
 YOUR TASK:
-1. Invent a FICTIONAL name, face description, and slightly modified background
+1. Invent a FICTIONAL French name, face description, and slightly modified background
 2. Preserve ALL specific numbers, struggles, and emotional beats as anchor facts
-3. Generate a visual_dna prompt that fits the type of person (age, build, job)
+3. Generate a visual_dna prompt IN ENGLISH that fits the type of person (age, build, job). MUST end with: harsh indoor lighting, low quality phone camera, grainy
 4. Return a reality_anchors object listing what is real vs inspired vs invented
 
-RULES:
+LANGUAGE RULES:
+- The character MUST be French, living in France
+- Give them a French name (or a name common in France — including North African, West African, Portuguese heritage names)
+- French everyday job: aide-soignant(e), caissier/ère, livreur, agent d'entretien, secrétaire médicale, etc.
+- Write backstory, personality_traits, reason_never_exercised in FRENCH (informal spoken French)
+- Use French cultural references: Carrefour, Auchan, Deliveroo, McDo, kebab, PMU, RER, HLM, cantine, Picard
+- The job field should be in French
+- visual_dna stays in ENGLISH (for image generation AI)
+- IMPORTANT: visual_dna must NOT contain professional photography terms. NO "warm natural light", NO "soft lighting", NO "beautiful", NO "professional"
+
+OTHER RULES:
 - KEEP all real numbers (weights, timeframes, dress sizes, specific wins)
 - KEEP all emotional beats (the turning point moment, the struggles)
 - CHANGE name, face, city, and invent backstory details
 - Apply any requested privacy modifications
-- Make the character feel like a real, relatable person from that profession
+- Make the character feel like a real, relatable French person from that profession
 
 Respond ONLY with a JSON object (no markdown, no code fences):
 {
-  "name": "Invented full name",
+  "name": "Invented French full name",
   "age": number,
-  "job": "Their specific job title",
-  "backstory": "2-3 sentences about their life situation — incorporate the real struggles naturally",
-  "physical_description": "Detailed physical appearance matching the demographic and job",
-  "personality_traits": ["trait1", "trait2", "trait3"],
-  "reason_never_exercised": "Why they never started — incorporate the real job/life struggles",
-  "visual_dna": "Short locking prompt for image consistency (15-25 words)",
+  "job": "Their occupation IN FRENCH",
+  "backstory": "2-3 sentences IN FRENCH about their life situation — incorporate the real struggles naturally",
+  "physical_description": "Detailed physical appearance IN FRENCH matching the demographic and job",
+  "personality_traits": ["trait1 in French", "trait2 in French", "trait3 in French"],
+  "reason_never_exercised": "Why they never started IN FRENCH — incorporate the real job/life struggles",
+  "visual_dna": "Short locking prompt IN ENGLISH for image consistency (15-25 words) — MUST end with: harsh indoor lighting, low quality phone camera, grainy",
   "reality_anchors": {
     "anchors": [
       {"fact": "the actual real data point", "type": "real", "scene_index": null},

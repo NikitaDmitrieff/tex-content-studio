@@ -71,7 +71,7 @@ Return ONLY a JSON object (no markdown, no code fences):
   },
   "notable_features": ["<e.g. weathered skin>", "<calloused hands>", "<tired eyes>"],
   "lifestyle_cues": "<1-2 sentences inferring their job, daily life, or life context from clothing, setting, or expression>",
-  "visual_dna_prefix": "<a 40-60 word Leonardo.AI image consistency prompt describing this person's consistent visual identity — their gender, age range, notable physical features, skin tone, hair, typical clothing, and photo style. Format like: 'same [gender] [age range], [hair], [skin tone], [signature clothing], warm natural light, candid smartphone photo quality'>"${extraFieldsBlock}
+  "visual_dna_prefix": "<a 40-60 word Nano Banana image consistency prompt describing this person's consistent visual identity — their gender, age range, notable physical features, skin tone, hair, typical clothing, and photo style. Format like: 'same [gender] [age range], [hair], [skin tone], [signature clothing], warm natural light, candid smartphone photo quality'>"${extraFieldsBlock}
 }`
 
   try {

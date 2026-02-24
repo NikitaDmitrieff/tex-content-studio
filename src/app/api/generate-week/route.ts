@@ -31,25 +31,32 @@ async function generateCharacter(
     messages: [
       {
         role: 'user',
-        content: `Generate an atypical, everyday character for a fitness transformation TikTok story. The person should be relatable and ordinary — NOT a fitness model or athlete.
+        content: `Generate an atypical, everyday FRENCH character for a fitness transformation TikTok story targeting a FRENCH audience. The person should be relatable and ordinary — NOT a fitness model or athlete. They must feel authentically French.
 
 Requirements:
-- Age between 30-65
-- Blue collar or everyday job (trucker, janitor, lunch lady, postal worker, etc.)${exclusionNote}
+- This is a FRENCH person living in FRANCE
+- Give them a French name (or a name common in France — including North African, West African, Portuguese, or mixed heritage names)
+- Age between 20-55 (mix it up — include younger people in their 20s, not just older)
+- French everyday job: chauffeur VTC, caissier/ère, aide-soignant(e), préparateur de commandes, intérimaire, livreur, agent d'entretien, ouvrier BTP, agent de sécurité, employé(e) de restauration, etc.${exclusionNote}
+- Use French cultural references in the backstory: Carrefour, Auchan, Deliveroo, McDo, kebab, PMU, RER, HLM, cantine, Picard, BN, Kinder
 - Physical description showing someone overweight and out of shape
-- Detailed personality traits that make them sympathetic
-- A compelling reason why they've never exercised before
-- A backstory with emotional depth
+- Include both men AND women — don't default to men
+- Diverse backgrounds reflecting France's diversity
+- Write backstory, personality_traits, reason_never_exercised in FRENCH (informal spoken French)
+- The job field should be in French
+- A visual_dna in ENGLISH: short image-locking prompt (15-25 words). Format: "same [gender], [age range], [hair], [skin tone], [signature clothing], [key feature], harsh indoor lighting, low quality phone camera, grainy"
+  IMPORTANT: visual_dna must NOT contain professional photography terms. NO "warm natural light", NO "soft lighting", NO "beautiful", NO "professional"
 
 Respond ONLY with a JSON object (no markdown, no code fences):
 {
-  "name": "Full name",
+  "name": "French full name",
   "age": number,
-  "job": "Their occupation",
-  "backstory": "2-3 sentences about their life situation and emotional weight",
-  "physical_description": "Detailed physical appearance, body type, typical clothing",
-  "personality_traits": ["trait1", "trait2", "trait3"],
-  "reason_never_exercised": "1-2 sentences explaining why they never started"
+  "job": "Their occupation IN FRENCH",
+  "backstory": "2-3 sentences IN FRENCH about their life situation and emotional weight",
+  "physical_description": "Detailed physical appearance IN FRENCH, body type, typical clothing",
+  "personality_traits": ["trait1 in French", "trait2 in French", "trait3 in French"],
+  "reason_never_exercised": "1-2 sentences IN FRENCH explaining why they never started",
+  "visual_dna": "Short locking prompt IN ENGLISH — MUST end with: harsh indoor lighting, low quality phone camera, grainy"
 }`,
       },
     ],
@@ -108,6 +115,15 @@ async function generateStory(
         role: 'user',
         content: `Write a 7-10 slide TikTok photo carousel. First person. The narrator IS the character below.
 
+LANGUAGE — CRITICAL:
+- ALL slide descriptions MUST be written in FRENCH. Informal spoken French, not literary French.
+- Write like a real French person texting — use spoken French, not textbook French.
+- Use natural French abbreviations and slang: "j'suis", "j'ai", "c'était", "mdr", "trkl", "sah", "wsh", "jsp"
+- Use French brand references: Deliveroo, UberEats, McDo, Picard, Carrefour, Auchan, kebab, PMU
+- Use French cultural references: la salle (gym), le RER, la cantine, les courses, la CAF, Pôle Emploi
+- The visual_prompt stays in ENGLISH (for the image generation AI)
+- BANNED AI-sounding French phrases: "ce jour-là tout a changé", "j'ai compris que", "le déclic", "une prise de conscience", "mon corps me parlait", "j'ai décidé de reprendre ma vie en main"
+
 CHARACTER:
 ${character.name}, ${character.age}, ${character.job}
 Backstory: ${character.backstory}
@@ -116,31 +132,29 @@ Look: ${character.physical_description}
 TONE: ${emotionalTone} — ${toneDescriptions[emotionalTone] || toneDescriptions['comeback']}
 
 VOICE RULES — this is the most important part:
-- Write like a REAL person typing on their phone. Not a writer. Not AI.
-- Use fragments. Run-ons. Start sentences with "And" or "But". Leave thoughts hanging with "..."
-- Include hyper-specific details: brand names of junk food, exact times ("3:47 AM"), body parts that hurt, specific coworker moments, real-sounding places
-- BANNED PHRASES: "little did I know", "something shifted", "I found myself", "game-changer", "needless to say", "fast forward", "plot twist", "here's the thing", "journey", "that's when everything changed"
+- Write like a REAL French person typing on their phone. Not a writer. Not AI.
+- Use fragments. Run-ons. Start sentences with "Et" or "Mais". Leave thoughts hanging with "..."
+- Include hyper-specific French details: brand names of junk food (BN, Kinder, Prince), exact times ("3h47 du mat"), body parts that hurt, specific coworker moments, real-sounding French places
 - Keep it messy. Real people contradict themselves. They joke in dark moments. They downplay big things.
-- Use casual punctuation: "idk", "lol", "ngl", "tbh" sparingly
 - Some slides should be just 1 sentence. Others 2-3. Vary it.
 
 STORY FLOW:
 1. My normal life. Make it feel heavy and specific. Not sad-movie sad — just... tired.
 2. The moment I actually see myself. A mirror, a photo, someone's comment. Something concrete.
 3. Breaking point. ONE specific moment that wrecked me. Not dramatic — quietly devastating.
-4. I find something on my phone. DO NOT name any app or brand. Say "this app" or "this thing". One sentence max.
+4. I find something on my phone. DO NOT name any app or brand. Say "cette appli" or "ce truc". One sentence max.
 5-6. Early days are brutal. Show specific failures. Specific small wins.
 7-8. Things start shifting. Clothes fit different. I sleep better.
 9-10. Where I am now. Not a transformation ad. Just... different. Better. Still me.
 
-SLIDE 1 MUST be a scroll-stopping hook. Make it visceral and specific.
+SLIDE 1 MUST be a scroll-stopping hook IN FRENCH. Make it visceral and specific.
 
 Respond ONLY with a JSON array (no markdown, no code fences):
 [
   {
-    "description": "Slide text — first person, raw, real",
+    "description": "Slide text IN FRENCH — first person, raw, real, spoken French",
     "emotional_beat": "2-4 word beat label",
-    "visual_prompt": "Photography prompt for AI image generation — must include character physical description"
+    "visual_prompt": "Photography prompt IN ENGLISH for AI image generation — must include character physical description"
   }
 ]`,
       },
@@ -206,13 +220,13 @@ export async function POST(request: NextRequest) {
     const demoStories = tones.map((tone, i) => ({
       story_id: `demo-week-${i}-${Date.now()}`,
       character: {
-        name: ['Frank Delgado', 'Diane Huang', 'Gerald Thompson', 'Maria Santos', 'Bob Jenkins'][i % 5],
-        age: [54, 47, 61, 38, 52][i % 5],
-        job: ['Long-haul trucker', 'School lunch lady', 'Retired postal worker', 'Factory worker', 'Night security guard'][i % 5],
-        backstory: 'A relatable everyday person with an emotional transformation story.',
-        physical_description: 'Heavyset, middle-aged, worn down by years of inactivity.',
-        personality_traits: ['Stubborn but kind', 'Self-deprecating humor', 'Deeply loyal'],
-        reason_never_exercised: "Always figured it was too late to start.",
+        name: ['Gérard Blanchard', 'Nadia Benmoussa', 'Patrick Morel', 'Samira Belkacem', 'Thierry Duval'][i % 5],
+        age: [52, 45, 56, 42, 48][i % 5],
+        job: ['Routier longue distance', 'Employée de cantine scolaire', "Chef d'équipe en usine", 'Secrétaire médicale', 'Agent de sécurité de nuit'][i % 5],
+        backstory: "Un quotidien bien ancré, des années sans bouger, et un déclic qui change tout.",
+        physical_description: 'En surpoids, usé par des années de sédentarité.',
+        personality_traits: ['Têtu mais attachant', 'Humour pince-sans-rire', 'Fidèle en amitié'],
+        reason_never_exercised: "S'est toujours dit que c'était trop tard pour commencer.",
       },
       emotional_tone: tone,
       scenes: [],

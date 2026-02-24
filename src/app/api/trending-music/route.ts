@@ -69,8 +69,14 @@ export async function GET(request: NextRequest) {
     const data = await res.json()
 
     // Normalize SociaVault response shape
-    const rawSongs = data.data || data.results || data || []
-    const songs: TrendingSong[] = (Array.isArray(rawSongs) ? rawSongs : []).map(
+    // API returns: { data: { sound_list: { "0": {...}, "1": {...}, ... } } }
+    const soundList = data?.data?.sound_list || data?.sound_list || {}
+    const rawSongs = Array.isArray(soundList)
+      ? soundList
+      : Object.values(soundList)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const songs: TrendingSong[] = (rawSongs as any[]).map(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (item: any, i: number) => ({
         rank: item.rank ?? i + 1,

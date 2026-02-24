@@ -1,16 +1,17 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { Story, Scene, Character } from '@/lib/types'
 import { StoryWorkspace } from '@/components/StoryWorkspace'
+import { CHARACTER_ROSTER } from '@/lib/character-roster'
 
 const DEMO_STORY: Story = {
   id: 'demo-1',
-  character_name: 'Frank Delgado',
-  character_age: 54,
-  character_job: 'Long-haul trucker',
+  character_name: 'Gérard Blanchard',
+  character_age: 52,
+  character_job: 'Routier longue distance',
   character_backstory:
-    'I spent 30 years behind the wheel eating gas station food and drinking energy drinks. My knees ache from the cab, my back is shot, and I haven\'t seen my toes in years. My wife left me 3 years ago, partly because I stopped caring about myself. My daughter\'s wedding is in 6 months, and I overheard her telling a friend she was embarrassed I wouldn\'t fit in the family photos.',
+    "Gérard passe 30 ans derrière le volant à manger des sandwichs de station-service et boire du Monster. Ses genoux le lâchent, son dos est foutu, et il a pas vu ses pieds depuis des années. Sa femme l'a quitté il y a 3 ans. Le mariage de sa fille est dans 6 mois et il l'a entendue dire à une copine qu'elle avait honte qu'il rentre pas dans les photos de famille.",
   character_physical:
-    'Heavyset at 280lbs on a 5\'10" frame, ruddy complexion from years of sun through the truck windshield, perpetual five o\'clock shadow, calloused hands, wears stretched-out trucker caps and flannel shirts.',
+    'Fort, 1m75 pour 130kg, teint rougeaud, barbe de 3 jours permanente, mains calleuses, casquette de routier défoncée et chemise en flanelle.',
   emotional_tone: 'comeback',
   status: 'draft',
   created_at: '2026-02-20T10:00:00Z',
@@ -18,11 +19,40 @@ const DEMO_STORY: Story = {
 
 const DEMO_SCENES: Scene[] = []
 
+function getStoryFromRoster(id: string): { story: Story; scenes: Scene[]; character: null } | null {
+  const match = id.match(/^roster-(\d+)$/)
+  if (!match) return null
+  const index = parseInt(match[1], 10)
+  const rosterChar = CHARACTER_ROSTER[index]
+  if (!rosterChar) return null
+
+  return {
+    story: {
+      id,
+      character_name: rosterChar.name,
+      character_age: rosterChar.age,
+      character_job: rosterChar.job,
+      character_backstory: rosterChar.backstory,
+      character_physical: rosterChar.physical_description,
+      visual_dna: rosterChar.visual_dna,
+      emotional_tone: 'comeback',
+      status: 'draft',
+      created_at: new Date().toISOString(),
+    },
+    scenes: [],
+    character: null,
+  }
+}
+
 async function getStoryData(id: string): Promise<{
   story: Story
   scenes: Scene[]
   character: Character | null
 }> {
+  // Check roster characters first
+  const rosterResult = getStoryFromRoster(id)
+  if (rosterResult) return rosterResult
+
   if (!isSupabaseConfigured || !supabase || id.startsWith('demo-') || id.startsWith('new-')) {
     return { story: { ...DEMO_STORY, id }, scenes: DEMO_SCENES, character: null }
   }

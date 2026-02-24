@@ -78,8 +78,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing story_id' }, { status: 400 })
   }
 
-  // If Supabase not configured, return demo data
-  if (!supabaseUrl || !supabaseServiceKey) {
+  // Demo/roster stories — return demo data
+  const isDemoId = story_id.startsWith('roster-') || story_id.startsWith('demo-') || story_id.startsWith('new-')
+  if (isDemoId || !supabaseUrl || !supabaseServiceKey) {
     return NextResponse.json({ audio_brief: getDemoAudioBrief() })
   }
 

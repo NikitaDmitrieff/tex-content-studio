@@ -9,7 +9,8 @@ const TARGET_HEIGHT = 1920
 async function downloadAndProcessImage(
   imageUrl: string,
   caption: string | null,
-  slideNumber: number
+  slideNumber: number,
+  textPosition?: number // 0-100 percentage from top
 ): Promise<Buffer> {
   const response = await fetch(imageUrl)
   if (!response.ok) {
@@ -31,18 +32,25 @@ async function downloadAndProcessImage(
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
 
+    // Use custom text position or default to 85% from top
+    const pos = textPosition ?? 85
+    const textY = Math.round((pos / 100) * TARGET_HEIGHT)
+    const gradStartY = Math.max(0, Math.round(((pos - 20) / 100) * TARGET_HEIGHT))
+    const gradHeight = TARGET_HEIGHT - gradStartY
+
     const svgOverlay = `
       <svg width="${TARGET_WIDTH}" height="${TARGET_HEIGHT}">
         <defs>
-          <linearGradient id="grad" x1="0%" y1="70%" x2="0%" y2="100%">
+          <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" style="stop-color:rgb(0,0,0);stop-opacity:0" />
+            <stop offset="40%" style="stop-color:rgb(0,0,0);stop-opacity:0.5" />
             <stop offset="100%" style="stop-color:rgb(0,0,0);stop-opacity:0.8" />
           </linearGradient>
         </defs>
-        <rect x="0" y="${TARGET_HEIGHT * 0.65}" width="${TARGET_WIDTH}" height="${TARGET_HEIGHT * 0.35}" fill="url(#grad)" />
+        <rect x="0" y="${gradStartY}" width="${TARGET_WIDTH}" height="${gradHeight}" fill="url(#grad)" />
         <text
           x="${TARGET_WIDTH / 2}"
-          y="${TARGET_HEIGHT - 80}"
+          y="${textY}"
           font-family="Arial, Helvetica, sans-serif"
           font-size="42"
           font-weight="bold"
@@ -93,6 +101,7 @@ export async function POST(request: NextRequest) {
       visual_prompt: string
       image_url: string | null
       caption: string | null
+      text_position?: number
     }>
   }
 
@@ -143,7 +152,8 @@ export async function POST(request: NextRequest) {
         const buffer = await downloadAndProcessImage(
           scene.image_url!,
           scene.caption,
-          index + 1
+          index + 1,
+          scene.text_position
         )
 
         const filename = `slide_${String(index + 1).padStart(2, '0')}.jpg`

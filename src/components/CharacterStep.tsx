@@ -210,7 +210,7 @@ export function CharacterStep({
               value={story.character_name}
               onChange={(e) => !isLocked && onUpdate({ character_name: e.target.value })}
               readOnly={isLocked}
-              placeholder="e.g. Frank Delgado"
+              placeholder="ex. Gérard Blanchard"
             />
           </div>
           <div>
@@ -241,7 +241,7 @@ export function CharacterStep({
               value={story.character_job}
               onChange={(e) => !isLocked && onUpdate({ character_job: e.target.value })}
               readOnly={isLocked}
-              placeholder="e.g. Long-haul trucker"
+              placeholder="ex. Routier longue distance"
             />
           </div>
         </div>
@@ -294,7 +294,7 @@ export function CharacterStep({
               value={story.visual_dna || ''}
               onChange={(e) => !isLocked && onUpdate({ visual_dna: e.target.value })}
               readOnly={isLocked}
-              placeholder="Image consistency prompt for Leonardo.AI..."
+              placeholder="Image consistency prompt for Nano Banana..."
             />
           </div>
         )}

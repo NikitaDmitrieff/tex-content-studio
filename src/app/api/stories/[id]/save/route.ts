@@ -14,12 +14,21 @@ const ALLOWED_FIELDS = new Set([
   'status',
 ])
 
+function isDemoId(id: string) {
+  return id.startsWith('roster-') || id.startsWith('demo-') || id.startsWith('new-')
+}
+
 async function handleSave(request: NextRequest, id: string) {
   let body: Record<string, unknown>
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+
+  // Skip DB save for demo/roster stories
+  if (isDemoId(id)) {
+    return NextResponse.json({ saved: true, demo: true })
   }
 
   // Filter to only allowed fields

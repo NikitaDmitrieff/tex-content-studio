@@ -59,6 +59,7 @@ export type Scene = {
   visual_prompt: string
   image_url: string | null
   caption: string | null
+  text_position?: number // 0-100, percentage from top (default 85 = near bottom)
   created_at: string
 }
 

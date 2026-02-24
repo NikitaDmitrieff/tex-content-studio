@@ -19,22 +19,22 @@ export async function POST(request: NextRequest) {
       {
         error: 'ANTHROPIC_API_KEY is not configured',
         character: {
-          name: 'Frank Delgado',
-          age: 54,
-          job: 'Long-haul trucker',
+          name: 'Gérard Blanchard',
+          age: 52,
+          job: 'Routier longue distance',
           backstory:
-            "Frank spent 30 years behind the wheel eating gas station food and drinking energy drinks. His knees ache from the cab, his back is shot, and he hasn't seen his toes in years. His wife left him 3 years ago, partly because he stopped caring about himself. His daughter's wedding is in 6 months, and he overheard her telling a friend she was embarrassed he wouldn't fit in the family photos.",
+            "Gérard passe 30 ans derrière le volant à manger des sandwichs de station-service et boire du Monster. Ses genoux le lâchent, son dos est foutu, et il a pas vu ses pieds depuis des années. Sa femme l'a quitté il y a 3 ans, en partie parce qu'il s'est laissé aller. Le mariage de sa fille est dans 6 mois et il l'a entendue dire à une copine qu'elle avait honte qu'il rentre pas dans les photos de famille.",
           physical_description:
-            'Heavyset at 280lbs on a 5\'10" frame, ruddy complexion from years of sun through the truck windshield, perpetual five o\'clock shadow, calloused hands, wears stretched-out trucker caps and flannel shirts.',
+            'Fort, 1m75 pour 130kg, teint rougeaud à force de soleil à travers le pare-brise, barbe de 3 jours permanente, mains calleuses, casquette de routier défoncée et chemise en flanelle.',
           personality_traits: [
-            'Stubborn but secretly sensitive',
-            'Dry humor',
-            'Reliable to everyone but himself',
+            'Têtu mais secrètement sensible',
+            'Humour pince-sans-rire',
+            'Fiable pour tout le monde sauf pour lui-même',
           ],
           reason_never_exercised:
-            "Always told himself he'd start 'next month.' Believes gyms are for young people and vanity. Deep down, afraid of failing publicly.",
+            "S'est toujours dit qu'il commencerait 'le mois prochain.' Pense que la salle c'est pour les jeunes et les narcissiques. Au fond, il a peur d'échouer devant tout le monde.",
           visual_dna:
-            "same heavyset man, mid-50s, ruddy complexion, five o'clock shadow, stretched trucker cap, flannel shirt, warm natural light, candid smartphone photo quality",
+            "same heavyset man, mid-50s, ruddy complexion, five o'clock shadow, stretched trucker cap, flannel shirt, harsh indoor lighting, low quality phone camera, grainy",
         },
         id: `new-${Date.now()}`,
         character_id: null,
@@ -52,27 +52,32 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `Generate an atypical, everyday character for a fitness transformation TikTok story. The person should be relatable and ordinary — NOT a fitness model or athlete.
+          content: `Generate an atypical, everyday FRENCH character for a fitness transformation TikTok story targeting a FRENCH audience. The person should be relatable and ordinary — NOT a fitness model or athlete. They must feel authentically French.
 
 Requirements:
-- Age between 30-65
-- Blue collar or everyday job (trucker, janitor, lunch lady, postal worker, etc.)
+- This is a FRENCH person living in FRANCE
+- Give them a French name (or a name common in France — including North African, West African, Portuguese, or mixed heritage names that are common in France)
+- Age between 20-55 (mix it up — include younger people in their 20s dealing with weight, not just older)
+- French everyday job: chauffeur VTC, caissier/ère, aide-soignant(e), préparateur de commandes, intérimaire, livreur, agent d'entretien, auxiliaire de puériculture, agent de sécurité, employé(e) de restauration, ouvrier BTP, etc.
+- Use French cultural references in the backstory: Carrefour, Auchan, Deliveroo, McDo, kebab, PMU, RER, HLM, cantine, Picard, BN, Kinder, la salle, etc.
 - Physical description showing someone overweight and out of shape
-- Detailed personality traits that make them sympathetic
-- A compelling reason why they've never exercised before
-- A backstory with emotional depth
-- A visual_dna: a short, precise image-locking prompt prefix (15-25 words) that describes THIS character's consistent visual identity — their age range, distinctive physical features, skin tone, typical clothing, and photo style. Format: "same [gender], [age range], [hair], [skin tone], [signature clothing], [no makeup or other key feature], warm natural light, candid smartphone photo quality"
+- Include both men AND women — don't default to men
+- Diverse backgrounds reflecting France's diversity
+- Write the backstory in FRENCH (informal spoken French). Keep personality_traits and reason_never_exercised in French too.
+- The job field should be in French
+- A visual_dna stays in ENGLISH: a short, precise image-locking prompt prefix (15-25 words). Format: "same [gender], [age range], [hair], [skin tone], [signature clothing], [key feature], harsh indoor lighting, low quality phone camera, grainy"
+  IMPORTANT: The visual_dna must NOT contain any professional photography terms. NO "warm natural light", NO "soft lighting", NO "beautiful", NO "professional".
 
 Respond ONLY with a JSON object (no markdown, no code fences):
 {
-  "name": "Full name",
+  "name": "Full name (French or common-in-France name)",
   "age": number,
-  "job": "Their occupation",
-  "backstory": "2-3 sentences about their life situation and emotional weight",
-  "physical_description": "Detailed physical appearance, body type, typical clothing",
-  "personality_traits": ["trait1", "trait2", "trait3"],
-  "reason_never_exercised": "1-2 sentences explaining why they never started",
-  "visual_dna": "short locking prompt prefix for image consistency"
+  "job": "Their occupation IN FRENCH",
+  "backstory": "2-3 sentences IN FRENCH about their life situation and emotional weight",
+  "physical_description": "Detailed physical appearance IN FRENCH, body type, typical clothing",
+  "personality_traits": ["trait1 in French", "trait2 in French", "trait3 in French"],
+  "reason_never_exercised": "1-2 sentences IN FRENCH explaining why they never started",
+  "visual_dna": "short locking prompt prefix IN ENGLISH for image consistency — MUST end with: harsh indoor lighting, low quality phone camera, grainy"
 }`,
         },
       ],

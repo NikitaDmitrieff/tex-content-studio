@@ -197,7 +197,7 @@ export default async function CharacterDetailPage({
             <div className="group relative">
               <HelpCircle className="w-3.5 h-3.5 text-zinc-600 cursor-help" />
               <div className="absolute left-0 bottom-full mb-2 w-72 p-3 rounded-xl bg-zinc-900 border border-white/[0.1] text-xs text-zinc-300 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl">
-                This prefix is prepended to every Leonardo.AI image prompt for scenes featuring this character. It locks their appearance (face, hair, clothing, skin tone) so all images look like the same person across episodes.
+                This prefix is prepended to every Nano Banana image prompt for scenes featuring this character. It locks their appearance (face, hair, clothing, skin tone) so all images look like the same person across episodes.
               </div>
             </div>
           </div>
